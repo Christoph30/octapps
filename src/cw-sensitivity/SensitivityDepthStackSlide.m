@@ -1,4 +1,4 @@
-## Copyright (C) 2016 Christoph Dreissigacker
+## Copyright (C) 2016, 2017 Christoph Dreissigacker
 ## Copyright (C) 2012 Reinhard Prix
 ##
 ## This program is free software; you can redistribute it and/or modify
@@ -77,6 +77,19 @@ function sensDepth = SensitivityDepthStackSlide ( varargin )
   assert ( isempty(uvar.misHist) ||(((size(uvar.pFA,2) == length(uvar.misHist)) || (size(uvar.avg2Fth,2) == length(uvar.misHist))) && size(uvar.Nseg,2) == length(uvar.misHist)) ,
 	   "#stages unclear, #columns in pFA/avg2Fth and Nseg must match #mismatch histograms.\n");
 
+  ## determine R^2 histogram
+  persistent persparams = {uvar.alpha,uvar.delta,uvar.detectors,uvar.detweights};
+  params = {uvar.alpha,uvar.delta,uvar.detectors,uvar.detweights};
+  persistent persRsqr = SqrSNRGeometricFactorHist("detectors", uvar.detectors, "detweights", uvar.detweights, "alpha", uvar.alpha, "sdelta", sin(uvar.delta));
+  if isequal(persparams,params);
+    Rsqr = persRsqr;
+  else
+    Rsqr = SqrSNRGeometricFactorHist("detectors", uvar.detectors, "detweights", uvar.detweights, "alpha", uvar.alpha, "sdelta", sin(uvar.delta));
+    clear persparams persRsqr;
+    persistent persparams = params;
+    persistent persRsqr = Rsqr;
+  endif
+
   ## two different ways to specify false-alarm / threshold
   if ( !isempty ( uvar.pFA ) )
     FAarg = { "paNt", uvar.pFA };
@@ -85,7 +98,6 @@ function sensDepth = SensitivityDepthStackSlide ( varargin )
   endif
 
   ## compute sensitivity SNR
-  Rsqr = SqrSNRGeometricFactorHist("detectors", uvar.detectors, "detweights", uvar.detweights, "alpha", uvar.alpha, "sdelta", sin(uvar.delta) );
   [sensDepth, pd_Depth] = SensitivityDepth ( "pd", uvar.pFD, "Ns", uvar.Nseg, "Tdata",uvar.Tdata, "Rsqr", Rsqr,"misHist",uvar.misHist, "stat", {"ChiSqr", FAarg{:}} );
 
 
