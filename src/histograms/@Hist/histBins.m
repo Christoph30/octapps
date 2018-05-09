@@ -15,21 +15,50 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} { [ @var{binq}, @dots{} ] =} histBins ( @var{hgrm}, @var{k}, @code{type}, @dots{} )
+## @deftypefnx{Function File} { [ @var{fbinq}, @dots{} ] =} histBins ( @var{hgrm}, @var{k}, @code{finite}, @code{type}, @dots{} )
+##
 ## Return quantities relating to the histogram bin boundaries.
-## Syntax:
-##   [binq,  ...] = histBins(hgrm, k, "type", ...)
-##   [fbinq, ...] = histBins(hgrm, k, "finite", "type", ...)
-## where:
-##   hgrm  = histogram object
-##   k     = dimension along which to return bin quantities
-##   type  = one of:
-##             "bins":   bin boundaries
-##             "lower":  lower bin boundary
-##             "upper":  upper bin boundary
-##             "centre": bin centre
-##             "width":  bin width
-##   binq  = bin quantities
-##   fbinq = finite bin quantities
+##
+## @heading Arguments
+##
+## @table @var
+## @item hgrm
+## histogram object
+##
+## @item k
+## dimension along which to return bin quantities
+##
+## @item type
+## one of:
+## @table @code
+## @item bins
+## bin boundaries
+##
+## @item lower
+## @var{lower} bin boundary
+##
+## @item upper
+## @var{upper} bin boundary
+##
+## @item centre
+## bin centre
+##
+## @item width
+## bin width
+##
+## @end table
+##
+## @item binq
+## bin quantities
+##
+## @item fbinq
+## @code{finite} bin quantities
+##
+## @end table
+##
+## @end deftypefn
 
 function varargout = histBins(hgrm, k, varargin)
 
@@ -74,3 +103,12 @@ function varargout = histBins(hgrm, k, varargin)
   endfor
 
 endfunction
+
+%!shared hgrm
+%!  hgrm = restrictHist(addDataToHist(Hist(1, {"lin", "dbin", 0.1}), unifrnd(0, 1, 1e6, 1)));
+%!assert(histBins(hgrm, 1, "lower"),  [-inf, 0:0.1:0.9, inf]', 1e-3)
+%!assert(histBins(hgrm, 1, "centre"), [-inf, 0.05:0.1:0.95, inf]', 1e-3)
+%!assert(histBins(hgrm, 1, "upper"), [-inf, 0.1:0.1:1.0, inf]', 1e-3)
+%!assert(histBins(hgrm, 1, "finite", "lower"),  [0:0.1:0.9]', 1e-3)
+%!assert(histBins(hgrm, 1, "finite", "centre"), [0.05:0.1:0.95]', 1e-3)
+%!assert(histBins(hgrm, 1, "finite", "upper"), [0.1:0.1:1.0]', 1e-3)

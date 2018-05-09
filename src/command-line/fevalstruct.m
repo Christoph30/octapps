@@ -15,8 +15,8 @@
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn  {Function File} fevalstruct (@var{name}, @var{argstruct})
-## @deftypefnx {Function File} fevalstruct (@dots{}, @var{property}, @var{value}, @dots{})
+## @deftypefn {Function File} {} fevalstruct ( @var{name}, @var{argstruct} )
+## @deftypefnx{Function File} {} fevalstruct ( @dots{}, @var{property}, @var{value}, @dots{} )
 ## Evaluate the function named @var{name}, using the keyword-value
 ## arguments given by @var{argstruct}.
 ##
@@ -51,3 +51,11 @@ function varargout = fevalstruct(name, argstruct, varargin)
   [varargout{1:nargout}] = feval(name, keyvals{:});
 
 endfunction
+
+%!test
+%!  args = struct;
+%!  args.real_strictpos_scalar = 1.23;
+%!  args.integer_vector = [-5, 3];
+%!  args.string = "Hi";
+%!  args.cell = {1, 9};
+%!  fevalstruct(@__test_parseOptions__, args);

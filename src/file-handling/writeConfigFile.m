@@ -14,12 +14,23 @@
 ## along with Octave; see the file COPYING.  If not, see
 ## <http://www.gnu.org/licenses/>.
 
-## Write a .ini style configuration file from a struct.
-## Usage:
-##   writeConfigFile(file, cfg)
-## where
-##   file = configuration file
-##   cfg  = configuration file contents
+## -*- texinfo -*-
+## @deftypefn {Function File} {} writeConfigFile ( @var{file}, @var{cfg} )
+##
+## Write a .ini style configuration @var{file} from a struct.
+##
+## @heading Arguments
+##
+## @table @var
+## @item file
+## configuration file
+##
+## @item cfg
+## configuration @var{file} contents
+##
+## @end table
+##
+## @end deftypefn
 
 function writeConfigFile(file, cfg)
 
@@ -81,7 +92,7 @@ function writeConfigFile(file, cfg)
           fprintf(f, valuefmt, value)
         endif
       endif
-        
+
       ## write inline comment
       inlinecomment = getoptfield("", cfg_section, sprintf("_inlinecomment_%s", names{j}));
       if !isempty(inlinecomment)
@@ -103,3 +114,8 @@ function writeConfigFile(file, cfg)
   assert(status == 1, "%s: could not replace '%s' with '%s': %s", funcName, file, new_file, msg);
 
 endfunction
+
+%!test
+%!  inifile = strcat(tempname(tempdir), ".ini");
+%!  inicfg = struct("sec1", struct("key1", 1.23, "key2", "hi"), "sec2", struct("key3", "there"))
+%!  writeConfigFile(inifile, inicfg);

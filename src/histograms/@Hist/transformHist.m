@@ -15,17 +15,34 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{hgrm} =} transformHist ( @var{hgrm}, @var{F}, [ @var{err} ] )
+##
 ## Transform the contents of a histogram.
-## Syntax:
-##   hgrm = transformHist(hgrm, F, [err])
-## where:
-##   hgrm = histogram object
-##   F    = function to apply to histogram samples:
-##          - should accept column vectors as inputs and return
-##            an array whose columns are vectorised outputs
-##          - number of input/output arguments must match
-##            histogram dimensionality
-##   err  = convergence requirement on histogram (default = 1e-2)
+##
+## @heading Arguments
+##
+## @table @var
+## @item hgrm
+## histogram object
+##
+## @item F
+## function to apply to histogram samples:
+## @itemize
+## @item
+## should accept column vectors as inputs and return
+## an array whose columns are vectorised outputs
+## @item
+## number of input/output arguments must match
+## histogram dimensionality
+## @end itemize
+##
+## @item err
+## convergence requirement on histogram (default = 1e-2)
+##
+## @end table
+##
+## @end deftypefn
 
 function thgrm = transformHist(hgrm, F, err = 1e-2)
 
@@ -63,7 +80,6 @@ function thgrm = transformHist(hgrm, F, err = 1e-2)
 
 endfunction
 
-
 ## create 1-D histograms for testing
 %!shared hgrmA, hgrmA1, hgrmA2, hgrmA3
 %!  hgrmA = hgrmA1 = hgrmA2 = hgrmA3 = Hist(1, {"lin", "dbin", 0.1});
@@ -91,7 +107,6 @@ endfunction
 %!test
 %!  t_hgrmA3 = transformHist(hgrmA, @(x) sin(x));
 %!  assert(histDistance(hgrmA3, t_hgrmA3) < 0.05);
-
 
 ## create 2-D histograms for testing
 %!shared hgrmB, hgrmB1, hgrmB2, hgrmB3

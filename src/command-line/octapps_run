@@ -1,0 +1,59 @@
+#!/bin/bash
+
+## Copyright (C) 2012, 2016 Karl Wette
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with with program; see the file COPYING. If not, write to the
+## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+## MA  02111-1307  USA
+
+## Run Octave function from the command line.
+OCTAVE="octave --silent --norc --no-history --no-window-system"
+
+## Check for command line arguments
+if [ "x$1" = x ]; then
+    echo "Usage: $0 <Octave function> --help"
+    echo "       $0 <Octave function> <arguments>..."
+    exit 1
+fi
+
+## Get directory containing function, and function name without any extension
+funcdir=`dirname $1`
+funcbase=`basename $1`
+funcname=`expr "x${funcbase}" : 'x\([^.]*\).*'`
+shift
+
+## Add directory to Octave path
+export OCTAVE_PATH="${funcdir}:${OCTAVE_PATH}"
+
+## Concatenate command-line arguments into a quoted string
+args="'${funcname}'"
+while [ "x$1" != x ]; do
+    if [ "x$1" = "x-h" ] || [ "x$1" = "x--help" ]; then
+
+        ## Display help on function if requested
+        ${OCTAVE} <<EOF | less -FRX
+func = "${funcname}";
+funchelp = help(func);
+printf("\nHelp on Octave function %s():\n\n%s\n\n%s\n\n", func, funchelp, strtrim(help("__octapps_run_driver__")));
+EOF
+        exit 1
+
+    fi
+    arg=${1//\"/\\\"}
+    args="${args}, \"${arg}\""
+    shift
+done
+
+## Call function through driver script __octapps_run_driver__()
+exec ${OCTAVE} --eval "__octapps_run_driver__(${args});"

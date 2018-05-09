@@ -14,10 +14,13 @@
 ## along with Octave; see the file COPYING.  If not, see
 ## <http://www.gnu.org/licenses/>.
 
+## -*- texinfo -*-
+## @deftypefn {Function File} { [ @var{x1}, @var{x2}, @dots{} ] =} native ( @var{x1}, @var{x2}, @dots{} )
+##
 ## Converts its arguments from foreign objects (e.g. SWIG-wrapped objects)
 ## to native Octave objects, if possible. Native objects are passed though.
-## Usage:
-##   [x1, x2, ...] = native(x1, x2, ...)
+##
+## @end deftypefn
 
 function varargout = native(varargin)
 
@@ -37,6 +40,7 @@ function varargout = native(varargin)
         varargout{i} = [];
         continue
       endif
+    catch
     end_try_catch
 
     ## try extracting data from a 'data field'
@@ -44,12 +48,14 @@ function varargout = native(varargin)
       data = varargin{i}.data;
       varargout{i} = reshape(data(:), size(data));
       continue
+    catch
     end_try_catch
 
     ## try converting to double
     try
-       varargout{i} = double(varargin{i});
+      varargout{i} = double(varargin{i});
       continue
+    catch
     end_try_catch
 
     ## give up
@@ -58,3 +64,5 @@ function varargout = native(varargin)
   endfor
 
 endfunction
+
+%!assert(isscalar(native(rand())))

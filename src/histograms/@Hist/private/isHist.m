@@ -15,15 +15,17 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## Helper function for isHist()
+
 function ishgrm = isHist(hgrm)
 
   ## Check whether the input argument is an internally consistent histogram object
-  ishgrm = isa(hgrm, "Hist") && iscell(hgrm.bins) && isvector(hgrm.bins) && length(hgrm.bins) > 0 && ismatrix(hgrm.counts);
+  ishgrm = isa(hgrm, "Hist") && iscell(hgrm.bins) && isvector(hgrm.bins) && length(hgrm.bins) > 0 && length(size(hgrm.counts)) >= 2;
   if ishgrm
     for k = 1:length(hgrm.bins)
       ishgrm = ishgrm && isvector(hgrm.bins{k}) && length(hgrm.bins{k}) >= 2 && ...
-          hgrm.bins{k}(1) == -inf && all(isfinite(hgrm.bins{k}(2:end-1))) && hgrm.bins{k}(end) == inf && ...
-          length(hgrm.bins{k}) == size(hgrm.counts, k) + 1;
+               hgrm.bins{k}(1) == -inf && all(isfinite(hgrm.bins{k}(2:end-1))) && hgrm.bins{k}(end) == inf && ...
+               length(hgrm.bins{k}) == size(hgrm.counts, k) + 1;
     endfor
   endif
 

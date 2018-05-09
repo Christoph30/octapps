@@ -14,25 +14,28 @@
 ## along with Octave; see the file COPYING.  If not, see
 ## <http://www.gnu.org/licenses/>.
 
-## Convert a sky-position given in terms of 'longitude' and 'latitude'
-## angles into a unit vector vn = [nx, ny, nz] in the same reference frame
-## (ie either in equatorial or ecliptic system).
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{skyEqu} =} skyEcliptic2Equatorial ( @var{skyEcl} )
 ##
-## Usage:
-##   skyEqu = skyEcliptic2Equatorial ( skyEcl )
+## Convert a sky-position given in terms of 'longitude' and 'latitude'
+## angles into a unit vector @code{vn = [nx, ny, nz]} in the same reference frame
+## (ie either in equatorial or ecliptic system).
 ##
 ## convert input sky-position in ecliptic reference frame into equatorial frame
 ##
-## Input 3-vectors are interpreted as sky-vectors vn = [nx, ny, nz] (un-normalized),
+## Input 3-vectors are interpreted as sky-vectors @code{vn = [nx, ny, nz]} (un-normalized),
 ## while 2-vectors are interpreted as sky angles [longitude, latitude],
 ## and the output uses the same format as the input (ie vector --> vector, angles-->angles).
 ## Multiple values can be input as column-vectors, ie Nx3 for vectors vn, Nx2 for angles
-## [simple wrapper for skyRotateFrame()]
+## @heading Note
+## simple wrapper for @command{skyRotateFrame()}
+##
+## @end deftypefn
 
 function skyEqu = skyEcliptic2Equatorial ( skyEcl )
 
   UnitsConstants;
-  skyEqu = skyRotateFrame ( skyEcl, +IEARTH, [ 1; 0; 0] );	## rotation ecliptic->equatorial
+  skyEqu = skyRotateFrame ( skyEcl, +IEARTH, [ 1; 0; 0] );      ## rotation ecliptic->equatorial
   return;
 
 endfunction
@@ -46,9 +49,9 @@ endfunction
 %! vnEqu1 = skyEcliptic2Equatorial ( vnEclIn );
 %!
 %! LongLatEclOut = skyEquatorial2Ecliptic ( LongLatEqu1 );
-%! vnEclOut 	 = skyEquatorial2Ecliptic ( vnEqu1 );
+%! vnEclOut      = skyEquatorial2Ecliptic ( vnEqu1 );
 %!
 %! err1 = max ( abs ( LongLatEclIn - LongLatEclOut )(:) );
 %! err2 = max ( abs ( vnEclIn - vnEclOut )(:) );
-%! assert ( (err1 < 1e-14) && (err2 < 1e-14 ) );
+%! assert ( (err1 < 1e-6) && (err2 < 1e-6 ) );
 

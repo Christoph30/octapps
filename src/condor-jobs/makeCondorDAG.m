@@ -15,18 +15,49 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{dag_file} =} makeCondorDAG ( @var{opt}, @var{val}, @dots{} )
+##
 ## Set up a Condor DAG for running Condor jobs.
-## Usage:
-##   dag_file = makeCondorDAG("opt", val, ...)
-## where
-##   dag_file = name of Condor DAG submit file
-## Options:
-##   "dag_name":        name of Condor DAG, used to name DAG submit file
-##   "job_nodes":       struct array of job nodes, which has the following fields:
-##                      * "file": name of Condor submit file for this job
-##                      * "vars": struct of variable substitutions to make
-##                      * "child": array indexing child job nodes for this node
-##   "retries":         how man times to retry Condor jobs (default: 0)
+##
+## @heading Arguments
+##
+## @table @var
+## @item dag_file
+## name of Condor DAG submit file
+##
+## @end table
+##
+## @heading Options
+##
+## @table @code
+## @item dag_name
+## name of Condor DAG, used to name DAG submit file
+##
+## @item job_nodes
+## struct array of job nodes, which has the following fields:
+##
+## @table @code
+## @item file
+## name of Condor submit file for this job
+##
+## @item vars
+## struct of variable substitutions to make
+##
+## @item child
+## array indexing child job nodes for this node
+##
+## @end table
+##
+## @item retries
+## how man times to retry Condor jobs (default: 0)
+##
+## @item sub_dags
+## split DAG into this many subfiles (default: 1)
+##
+## @end table
+##
+## @end deftypefn
 
 function dag_file = makeCondorDAG(varargin)
 
@@ -35,6 +66,7 @@ function dag_file = makeCondorDAG(varargin)
                {"dag_name", "char"},
                {"job_nodes", "struct"},
                {"retries", "integer,positive", 0},
+               {"sub_dags", "integer,strictpos", 1},
                []);
 
   ## check input
@@ -85,11 +117,17 @@ function dag_file = makeCondorDAG(varargin)
     endif
   endfor
 
-  ## check that DAG submit file and output base directory do not exist
-  dag_file = strcat(dag_name, ".dag");
-  if exist(dag_file, "file")
-    error("%s: DAG file '%s' already exists", funcName, dag_file);
-  endif
+  ## check that DAG submit file(s) and output base directory do not exist
+  for s = 1:sub_dags
+    if sub_dags > 1
+      dag_file{s} = sprintf("%s_%02i.dag", dag_name, s);
+    else
+      dag_file{s} = sprintf("%s.dag", dag_name);
+    endif
+    if exist(dag_file{s}, "file")
+      error("%s: DAG file '%s' already exists", funcName, dag_file{s});
+    endif
+  endfor
   job_out_base_dir = strcat(dag_name, ".out");
   if exist(job_out_base_dir, "dir")
     error("%s: job output base directory '%s' already exists", funcName, job_out_base_dir);
@@ -112,22 +150,28 @@ function dag_file = makeCondorDAG(varargin)
   job_out_dirs = unique(job_out_dirs);
 
   ## write Condor DAG submit file, with nodes in reverse order
-  fid = fopen(dag_file, "w");
-  if fid < 0
-    error("%s: could not open file '%s' for writing", funcName, dag_file);
-  endif
+  for s = 1:sub_dags
+    fid(s) = fopen(dag_file{s}, "w");
+    if fid(s) < 0
+      error("%s: could not open file '%s' for writing", funcName, dag_file{s});
+    endif
+  endfor
+  s = 0;
   for n = length(job_nodes):-1:1
+
+    ## increment sub-dag index
+    s = mod(s, sub_dags) + 1;
 
     ## print node
     job_node_file = fullfile(pwd, job_nodes(n).file);
     job_node_dir = fullfile(pwd, job_nodes(n).dir);
-    fprintf(fid, "\n");
-    fprintf(fid, "JOB %s %s DIR %s\n", job_nodes(n).name, job_node_file, job_node_dir);
-    fprintf(fid, "RETRY %s %d\n", job_nodes(n).name, retries);
+    fprintf(fid(s), "\n");
+    fprintf(fid(s), "JOB %s %s DIR %s\n", job_nodes(n).name, job_node_file, job_node_dir);
+    fprintf(fid(s), "RETRY %s %d\n", job_nodes(n).name, retries);
 
     ## print node variables
     if isfield(job_nodes(n), "vars") && !isempty(job_nodes(n).vars)
-      fprintf(fid, "VARS %s", job_nodes(n).name);
+      fprintf(fid(s), "VARS %s", job_nodes(n).name);
       vars = fieldnames(job_nodes(n).vars);
       for i = 1:length(vars)
         value = stringify(job_nodes(n).vars.(vars{i}));
@@ -135,22 +179,24 @@ function dag_file = makeCondorDAG(varargin)
         value = strrep(value, "\"", "\"\"");
         value = strrep(value, "\\", "\\\\");
         value = strrep(value, "\"", "\\\"");
-        fprintf(fid, " %s=\"%s\"", vars{i}, value);
+        fprintf(fid(s), " %s=\"%s\"", vars{i}, value);
       endfor
-      fprintf(fid, "\n");
+      fprintf(fid(s), "\n");
     endif
 
     ## print node children
     if isfield(job_nodes(n), "child") && !isempty(job_nodes(n).child)
-      fprintf(fid, "PARENT %s CHILD", job_nodes(n).name);
+      fprintf(fid(s), "PARENT %s CHILD", job_nodes(n).name);
       for i = 1:length(job_nodes(n).child)
-        fprintf(fid, " %s", job_nodes(job_nodes(n).child(i)).name);
+        fprintf(fid(s), " %s", job_nodes(job_nodes(n).child(i)).name);
       endfor
-      fprintf(fid, "\n");
+      fprintf(fid(s), "\n");
     endif
 
   endfor
-  fclose(fid);
+  for s = 1:sub_dags
+    fclose(fid(s));
+  endfor
 
   ## create job node output directory names, and check that they do not exist
   for i = 1:length(job_out_dirs)
@@ -163,4 +209,59 @@ function dag_file = makeCondorDAG(varargin)
   dag_nodes_file = strcat(dag_name, "_nodes.bin.gz");
   save("-binary", "-zip", dag_nodes_file, "job_nodes");
 
+  ## flatten 'dag_file' if only one DAG file
+  if sub_dags > 1
+    dag_file = dag_file{1};
+  endif
+
 endfunction
+
+%!test
+%!
+%!  oldpwd = pwd;
+%!  jobdir = mkpath(tempname(tempdir));
+%!  unwind_protect
+%!    cd(jobdir);
+%!
+%!    jobname = "test_makeCondorDAG";
+%!    job = makeCondorJob("job_name", jobname, ...
+%!                        "log_dir", pwd,
+%!                        "func_name", "__test_parseOptions__", ...
+%!                        "func_nargout", 1, ...
+%!                        "arguments", { ...
+%!                                       "--real-strictpos-scalar", "$(x)", ...
+%!                                       "--integer-vector", [3,9,5], ...
+%!                                       "--string", "Hi there", ...
+%!                                       "--cell", {1,{2,3}}, ...
+%!                                     }, ...
+%!                        "data_files", { ...
+%!                                        fullfile(fileparts(file_in_loadpath("readSFT.m")), "SFT-good") ...
+%!                                      }, ...
+%!                        "extra_condor", { ...
+%!                                          "requirements", "TARGET.has_avx == true", ...
+%!                                        } ...
+%!                       );
+%!    assert(exist("./test_makeCondorDAG.job") == 2);
+%!    assert(exist("./test_makeCondorDAG.sh") == 2);
+%!    assert(exist("./test_makeCondorDAG.in") == 7);
+%!    assert(exist("./test_makeCondorDAG.in/.exec") == 7);
+%!    assert(exist("./test_makeCondorDAG.in/.func") == 7);
+%!    assert(exist("./test_makeCondorDAG.in/SFT-good") == 2);
+%!
+%!    nodes = struct;
+%!    node = struct;
+%!    node.file = job;
+%!    node.vars.x = 1.23;
+%!    nodes(1) = node;
+%!    node.vars.x = 4.56;
+%!    nodes(2) = node;
+%!    makeCondorDAG("dag_name", jobname, "job_nodes", nodes);
+%!    assert(exist("./test_makeCondorDAG.dag") == 2);
+%!    assert(exist("./test_makeCondorDAG_nodes.bin.gz") == 2);
+%!    assert(exist("./test_makeCondorDAG.out") == 7);
+%!    assert(exist("./test_makeCondorDAG.out/00") == 7);
+%!    assert(exist("./test_makeCondorDAG.out/01") == 7);
+%!
+%!  unwind_protect_cleanup
+%!    cd(oldpwd);
+%!  end_unwind_protect

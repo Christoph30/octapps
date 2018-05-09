@@ -15,12 +15,23 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{stdv} =} stdvOfHist ( @var{hgrm}, [ @var{k} = 1 ] )
+##
 ## Returns the standard deviation(s) of a histogram.
-## Syntax:
-##   stdv = stdvOfHist(hgrm, [k = 1])
-## where:
-##   hgrm = histogram object
-##   k    = dimension to calculate standard deviation(s) over
+##
+## @heading Arguments
+##
+## @table @var
+## @item hgrm
+## histogram object
+##
+## @item k
+## dimension to calculate standard deviation(s) over
+##
+## @end table
+##
+## @end deftypefn
 
 function stdv = stdvOfHist(hgrm, k = 1)
 
@@ -34,11 +45,9 @@ function stdv = stdvOfHist(hgrm, k = 1)
 
 endfunction
 
-
-## test histogram mean/standard deviation with Gaussian/uniform histogram
+## test histogram mean deviation with Gaussian/uniform histogram
 %!shared hgrm
 %!  hgrm = Hist(2, {"lin", "dbin", 0.01}, {"lin", "dbin", 0.1});
-%!  hgrm = addDataToHist(hgrm, [normrnd(1.7, 4.3, 1e7, 1), rand(1e7, 1)]);
-%!assert(abs(meanOfHist(hgrm) - 1.7) < 5e-2)
+%!  hgrm = addDataToHist(hgrm, [normrnd(1.7, 4.3, 1e6, 1), rand(1e6, 1)]);
 %!assert(abs(stdvOfHist(hgrm) - 4.3) < 5e-2)
 %!assert(abs(stdvOfHist(hgrm) - sqrt(varianceOfHist(hgrm))) < 5e-2)

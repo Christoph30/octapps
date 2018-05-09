@@ -15,7 +15,7 @@
 ## <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} {@var{y} =} meanNaN(@var{x}, @var{dim})
+## @deftypefn {Function File} {@var{y} =} meanNaN ( @var{x}, @var{dim} )
 ##
 ## Compute the mean of @var{x} over the dimension @var{dim}, ignoring NaNs.
 ## @end deftypefn
@@ -37,3 +37,5 @@ function Y = meanNaN(X, dim=[])
   Y = sum(X, dim) ./ N;
 
 endfunction
+
+%!assert(meanNaN([1:5, NaN, 6:10]), mean(1:10))

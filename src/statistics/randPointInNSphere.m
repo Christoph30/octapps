@@ -15,16 +15,32 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
-## Generate random points (with)in a n-dimensional sphere
-## Syntax:
-##   p = randPointInNSphere(n, u)
-## where:
-##   n = dimensionality of sphere
-##   u = vector of numbers used to chose the radius; set
-##          u = rand(1, m)
-##       to generate m points uniformly within the sphere, or
-##          u = ones(1, m)
-##       to generate m points uniformly over the sphere's surface
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{p} =} randPointInNSphere ( @var{n}, @var{u} )
+##
+## Generate random points (with)in a @var{n}-dimensional sphere
+##
+## @heading Arguments
+##
+## @table @var
+## @item n
+## dimensionality of sphere
+##
+## @item u
+## vector of numbers used to chose the radius; set
+##
+## @table @asis
+## @item u = rand(1, m)
+## to generate m points uniformly within the sphere, or
+##
+## @item u = ones(1, m)
+## to generate m points uniformly over the sphere's surface
+##
+## @end table
+##
+## @end table
+##
+## @end deftypefn
 
 function p = randPointInNSphere(n, u)
 
@@ -48,3 +64,9 @@ function p = randPointInNSphere(n, u)
   p = p .* s(ones(n, 1), :);
 
 endfunction
+
+%!assert(norm(randPointInNSphere(1, 1)), 1.0, 1e-4)
+%!assert(norm(randPointInNSphere(2, 1)), 1.0, 1e-4)
+%!assert(norm(randPointInNSphere(3, 1)), 1.0, 1e-4)
+%!assert(norm(randPointInNSphere(4, 1)), 1.0, 1e-4)
+%!assert(norm(randPointInNSphere(5, 1)), 1.0, 1e-4)

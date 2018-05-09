@@ -15,14 +15,29 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{rng} =} CreateRandParam ( @var{p}, @var{p}, @dots{} )
+##
 ## Parses random parameters specs, which may be either
-##   <constant>,     denoting a single value, or
-##   [<min>, <max>], denoting a range of values
-## Syntax:
-##   rng = CreateRandParam(p, p, ...)
-## where
-##   rng = random parameter generator
-##   p   = random parameter spec
+## @itemize
+## @item @samp{constant}:
+## denoting a single value, or
+## @item [@samp{min}, @samp{max}]:
+## denoting a range of values
+## @end itemize
+##
+## @heading Arguments
+##
+## @table @var
+## @item rng
+## random parameter generator
+##
+## @item p
+## random parameter spec
+##
+## @end table
+##
+## @end deftypefn
 
 function rng = CreateRandParam(varargin)
 
@@ -36,15 +51,15 @@ function rng = CreateRandParam(varargin)
   for i = 1:nargin
     p = varargin{i};
     switch numel(p)
-      case 1    # <constant>
-	rng.cii(end+1,1) = i;
-	rng.cc(end+1,1) = p;
-      case 2    # [<min>, <max>]
-	rng.rii(end+1,1) = i;
-	rng.rm(end+1,1) = max(p) - min(p);
-	rng.rc(end+1,1) = min(p);
+      case 1    ## <constant>
+        rng.cii(end+1,1) = i;
+        rng.cc(end+1,1) = p;
+      case 2    ## [<min>, <max>]
+        rng.rii(end+1,1) = i;
+        rng.rm(end+1,1) = max(p) - min(p);
+        rng.rc(end+1,1) = min(p);
       otherwise
-	error("Invalid random parameter spec!");
+        error("Invalid random parameter spec!");
     endswitch
   endfor
 
@@ -55,3 +70,5 @@ function rng = CreateRandParam(varargin)
   rng.allconst = (length(rng.rii) == 0);
 
 endfunction
+
+%!assert(isstruct(CreateRandParam([0, 5.5], [2.2, 7])))

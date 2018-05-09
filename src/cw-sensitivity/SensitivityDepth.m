@@ -16,41 +16,100 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} { [ @var{Depth}, @var{pd_Depth} ] =} SensitivityDepth ( @var{opt}, @var{val}, @dots{} )
+##
 ## Calculate sensitivity in terms of the sensitivity depth.
-## Syntax:
-##   [Depth, pd_Depth] = SensitivityDepth("opt", val, ...)
-## where:
-##   Depth    = SensitivityDepth
-##   pd_Depth = calculated false dismissal probability
-## and where options are:
-##   "pd"     = false dismissal probability
-##   "Ns"     = number of segments
-##   "Tdata"  = total amount of data used in seconds
-##   "Rsqr"   = histogram of SNR "geometric factor" R^2,
-##              computed using SqrSNRGeometricFactorHist(),
-##              or scalar giving mean value of R^2
-##   "stat"   = detection statistic, one of:
-##              * {"ChiSqr", "opt", val, ...}
-##                  chi^2 statistic, e.g. the F-statistic, see
-##                  SensitivityChiSqrFDP() for options
-##              * {"HoughFstat", "opt", val, ...}
-##                  Hough on the F-statistic, see
-##                  SensitivityHoughFstatFDP() for options
-##   "prog"   = show progress updates
-##  "misHist" = mismatch histograms (default: no mismatch)
+##
+## @heading Arguments
+##
+## @table @var
+## @item Depth
+## SensitivityDepth
+##
+## @item pd_Depth
+## calculated false dismissal probability
+##
+## @end table
+##
+## @heading Options
+##
+## @table @code
+## @item pd
+## false dismissal probability
+##
+## @item Ns
+## number of segments
+##
+## @item Tdata
+## total amount of data used in seconds
+##
+## @item Rsqr
+## histogram of SNR "geometric factor" R^2,
+## computed using @command{SqrSNRGeometricFactorHist()},
+## or scalar giving mean value of R^2
+##
+## @item stat
+## detection statistic, one of:
+## @table @asis
+## @item @{@code{ChiSqr}, @var{opt}, @var{val}, @dots{}@}
+## chi^2 statistic, e.g. the F-statistic, with options:
+## @table @var
+## @item paNt
+## false alarm probability per template
+##
+## @item sa
+## false alarm threshold
+##
+## @item dof
+## degrees of freedom per segment (default: 4)
+##
+## @item norm
+## use normal approximation to chi^2 (default: false)
+##
+## @end table
+##
+## @item @{@code{HoughFstat}, @var{opt}, @var{val}, @dots{}@}
+## Hough on the F-statistic, with options:
+## @table @var
+## @item paNt
+## false alarm probability per template
+##
+## @item nth
+## number count false alarm threshold
+##
+## @item Fth
+## F-statistic threshold per segment
+##
+## @item zero
+## use zeroth-order approximation (default: false)
+##
+## @end table
+##
+## @end table
+##
+## @item prog
+## show progress updates
+##
+## @item misHist
+## mismatch histograms (default: no mismatch)
+##
+## @end table
+##
+## @end deftypefn
 
 function [Depth, pd_Depth] = SensitivityDepth(varargin)
 
   ## parse options
   parseOptions(varargin,
-	       {"pd", "real,strictunit,column"},
-	       {"Ns", "integer,strictpos,matrix"},
-	       {"Tdata","real, matrix"},
-	       {"Rsqr", "a:Hist", []},
-	       {"misHist","acell:Hist", []},
-	       {"stat", "cell,vector"},
-	       {"prog", "logical,scalar", false},
-	       []);
+               {"pd", "real,strictunit,column"},
+               {"Ns", "integer,strictpos,matrix"},
+               {"Tdata","real, matrix"},
+               {"Rsqr", "a:Hist", []},
+               {"misHist","acell:Hist", []},
+               {"stat", "cell,vector"},
+               {"prog", "logical,scalar", false},
+               []);
   assert(histDim(Rsqr) == 1, "%s: R^2 must be a 1D histogram", funcName);                 #add for mismatch
   assert(length(stat) > 1 && ischar(stat{1}), "%s: first element of 'stat' must be a string", funcName);
   assert(isempty(misHist) || size(Ns,2) == length(misHist),"#stages unclear, #columns in Nseg must match #mismatch histograms.\n");
@@ -82,7 +141,7 @@ function [Depth, pd_Depth] = SensitivityDepth(varargin)
       error("Sizes of Tdata and Ns are not compatible\n");
     endif
   end_try_catch
-  ##transform Ns, Tdata and sa into a cell array
+  ## transform Ns, Tdata and sa into a cell array
   Ns = num2cell(Ns,1);
   Tdata = num2cell(Tdata,1);
   fdp_vars{1} = num2cell(fdp_vars{1},1);
@@ -90,12 +149,11 @@ function [Depth, pd_Depth] = SensitivityDepth(varargin)
     fdp_vars{2} = num2cell(fdp_vars{2},1);
   endif
 
-
   ## get probability densities and bin quantities
   Rsqr_px = histProbs(Rsqr);
   [Rsqr_x, Rsqr_dx] = histBins(Rsqr, 1, "centre", "width");
 
-  ## check histogram bins are positive and contain no infinities                  # add for mismatch
+  ## check histogram bins are positive and contain no infinities                  ## add for mismatch
   if min(histRange(Rsqr)) < 0
     error("%s: R^2 histogram bins must be positive", funcName);
   endif
@@ -174,18 +232,12 @@ function [Depth, pd_Depth] = SensitivityDepth(varargin)
     printf("%s: starting\n", funcName);
   endif
 
-
-
-
-
   ## Depth is computed for each pd and Ns (dim. 1) by summing
   ## false dismissal probability for fixed Rsqr_x, weighted
   ## by Rsqr_w (dim. 2)
   ## copy values along trials dimension
   Rsqr_x = Rsqr_x(ii + 0, :);
   Rsqr_w = Rsqr_w(ii + 0, :);
-
-
 
   ## initialise variables
   pd_Depth = Depth = nan(length(ii), 1);
@@ -196,8 +248,8 @@ function [Depth, pd_Depth] = SensitivityDepth(varargin)
   ## probability
   Depth_min = ones(size(Depth));
   pd_Depth_min(ii) = callFDP(Depth_min,ii,
-			   jj,kk,pd,Ns, Tdata,Rsqr_x,Rsqr_w,mism_x, mism_w,
-			   FDP,fdp_vars,fdp_opts);
+                             jj,kk,pd,Ns, Tdata,Rsqr_x,Rsqr_w,mism_x, mism_w,
+                             FDP,fdp_vars,fdp_opts);
   ii0 = (pd_Depth_min <= pd);
 
   ## find Depth_max where the false dismissal probability becomes
@@ -219,8 +271,8 @@ function [Depth, pd_Depth] = SensitivityDepth(varargin)
 
     ## calculate false dismissal probability
     pd_Depth_max(ii) = callFDP(Depth_max,ii,
-			     jj,kk,pd,Ns, Tdata,Rsqr_x,Rsqr_w, mism_x, mism_w,
-			     FDP,fdp_vars,fdp_opts);
+                               jj,kk,pd,Ns, Tdata,Rsqr_x,Rsqr_w, mism_x, mism_w,
+                               FDP,fdp_vars,fdp_opts);
 
     ## determine which Depth to keep calculating for
     ## exit when there are none left
@@ -246,8 +298,8 @@ function [Depth, pd_Depth] = SensitivityDepth(varargin)
 
     ## calculate new false dismissal probability
     pd_Depth(ii) = callFDP(Depth,ii,
-			 jj,kk,pd,Ns, Tdata,Rsqr_x,Rsqr_w, mism_x, mism_w,
-			 FDP,fdp_vars,fdp_opts);
+                           jj,kk,pd,Ns, Tdata,Rsqr_x,Rsqr_w, mism_x, mism_w,
+                           FDP,fdp_vars,fdp_opts);
 
     ## replace bounds with mid-point as required
     iimin = ii & (pd_Depth_min < pd & pd_Depth < pd);
@@ -268,8 +320,6 @@ function [Depth, pd_Depth] = SensitivityDepth(varargin)
     ii = (isfinite(err1) & err1 > 1e-5) & (isfinite(err2) & err2 > 1e-10);
   until !any(ii)
 
-
-
   ## display progress updates?
   if prog
     printf("%s: done\n", funcName);
@@ -280,15 +330,15 @@ endfunction
 
 ## call a false dismissal probability calculation equation
 function pd_Depth = callFDP(Depth,ii,
-			  jj,kk,pd,Ns, Tdata,Rsqr_x,Rsqr_w,mism_x, mism_w,
-			  FDP,fdp_vars,fdp_opts)
+                            jj,kk,pd,Ns, Tdata,Rsqr_x,Rsqr_w,mism_x, mism_w,
+                            FDP,fdp_vars,fdp_opts)
   if any(ii)
     for i = 1:length(mism_x)
-      ##integrating over the mismatch distributions
+      ## integrating over the mismatch distributions
       cdfs(:,:,i) = sum((1 -  feval(FDP,pd(ii,jj,kk{i}), Ns{i}(ii,jj,kk{i}),                       ## lower dimensional arrays are copied to the remaining dimensions
-		       (2 / 5 .*sqrt(Tdata{i}(ii,jj,kk{i}) ./Ns{i}(ii,jj,kk{i}))./Depth(ii,jj,kk{i})).^2 .*Rsqr_x(ii,:,kk{i}).*(1 - mism_x{i}(ii,jj,:)), ## might be better to do that before the loop
-		       cellfun(@(x) x{i}(ii,jj,kk{i}),fdp_vars,"UniformOutput",false),
-		       fdp_opts )) .*mism_w{i}(ii,jj,:),3);
+                                    (2 / 5 .*sqrt(Tdata{i}(ii,jj,kk{i}) ./Ns{i}(ii,jj,kk{i}))./Depth(ii,jj,kk{i})).^2 .*Rsqr_x(ii,:,kk{i}).*(1 - mism_x{i}(ii,jj,:)), ## might be better to do that before the loop
+                                    cellfun(@(x) x{i}(ii,jj,kk{i}),fdp_vars,"UniformOutput",false),
+                                    fdp_opts )) .*mism_w{i}(ii,jj,:),3);
     endfor
     ## product of the mismatch integrals, integration over R^2
     pd_Depth = 1 - sum(prod(cdfs,3).* Rsqr_w(ii,:) , 2);
@@ -296,3 +346,61 @@ function pd_Depth = callFDP(Depth,ii,
     pd_Depth = [];
   endif
 endfunction
+
+## calculate Rsqr for isotropic signal population
+%!shared Rsqr
+%!  Rsqr = SqrSNRGeometricFactorHist;
+
+## Test sensitivity calculated for chi^2 statistic
+## against values calculated by Mathematica implementation
+##  - test SNR depth against reference value depth0
+%!function __test_sens_chisqr(Rsqr,paNt,pd,nu,Ns,depth0)
+%!  depth = SensitivityDepth("Tdata",86400*Ns,"pd",pd,"Ns",Ns,"Rsqr",Rsqr,"stat",{"ChiSqr","paNt",paNt,"dof",nu});
+%!  assert(abs(depth - depth0) < 1e-2 * abs(depth0));
+## - tests
+%!test __test_sens_chisqr(Rsqr,0.01,0.05,2,1,17.9751)
+%!test __test_sens_chisqr(Rsqr,0.01,0.05,2,100,80.4602)
+%!test __test_sens_chisqr(Rsqr,0.01,0.05,2,10000,269.687)
+%!test __test_sens_chisqr(Rsqr,0.01,0.05,4,1,16.429)
+%!test __test_sens_chisqr(Rsqr,0.01,0.05,4,100,68.8944)
+%!test __test_sens_chisqr(Rsqr,0.01,0.05,4,10000,227.24)
+%!test __test_sens_chisqr(Rsqr,0.01,0.1,2,1,20.5666)
+%!test __test_sens_chisqr(Rsqr,0.01,0.1,2,100,89.3568)
+%!test __test_sens_chisqr(Rsqr,0.01,0.1,2,10000,297.123)
+%!test __test_sens_chisqr(Rsqr,0.01,0.1,4,1,18.6925)
+%!test __test_sens_chisqr(Rsqr,0.01,0.1,4,100,76.3345)
+%!test __test_sens_chisqr(Rsqr,0.01,0.1,4,10000,250.28)
+%!test __test_sens_chisqr(Rsqr,1e-07,0.05,2,1,10.5687)
+%!test __test_sens_chisqr(Rsqr,1e-07,0.05,2,100,55.9013)
+%!test __test_sens_chisqr(Rsqr,1e-07,0.05,2,10000,193.411)
+%!test __test_sens_chisqr(Rsqr,1e-07,0.05,4,1,10.0133)
+%!test __test_sens_chisqr(Rsqr,1e-07,0.05,4,100,48.3342)
+%!test __test_sens_chisqr(Rsqr,1e-07,0.05,4,10000,163.153)
+%!test __test_sens_chisqr(Rsqr,1e-07,0.1,2,1,11.589)
+%!test __test_sens_chisqr(Rsqr,1e-07,0.1,2,100,60.1536)
+%!test __test_sens_chisqr(Rsqr,1e-07,0.1,2,10000,206.551)
+%!test __test_sens_chisqr(Rsqr,1e-07,0.1,4,1,10.9521)
+%!test __test_sens_chisqr(Rsqr,1e-07,0.1,4,100,51.9024)
+%!test __test_sens_chisqr(Rsqr,1e-07,0.1,4,10000,174.182)
+%!test __test_sens_chisqr(Rsqr,1e-12,0.05,2,1,8.29336)
+%!test __test_sens_chisqr(Rsqr,1e-12,0.05,2,100,47.5524)
+%!test __test_sens_chisqr(Rsqr,1e-12,0.05,2,10000,168.007)
+%!test __test_sens_chisqr(Rsqr,1e-12,0.05,4,1,7.96925)
+%!test __test_sens_chisqr(Rsqr,1e-12,0.05,4,100,41.3759)
+%!test __test_sens_chisqr(Rsqr,1e-12,0.05,4,10000,141.831)
+%!test __test_sens_chisqr(Rsqr,1e-12,0.1,2,1,8.97247)
+%!test __test_sens_chisqr(Rsqr,1e-12,0.1,2,100,50.7244)
+%!test __test_sens_chisqr(Rsqr,1e-12,0.1,2,10000,177.979)
+%!test __test_sens_chisqr(Rsqr,1e-12,0.1,4,1,8.60838)
+%!test __test_sens_chisqr(Rsqr,1e-12,0.1,4,100,44.0545)
+%!test __test_sens_chisqr(Rsqr,1e-12,0.1,4,10000,150.205)
+
+## Test sensitivity calculated for Hough Fstat statistic
+## - test SNR depth against reference value depth0
+%!function __test_sens_houghfstat(Rsqr,paNt,pd,Fth,Ns,depth0)
+%!  depth = SensitivityDepth("Tdata",86400*Ns,"pd",pd,"Ns",Ns,"Rsqr",Rsqr,"stat",{"HoughFstat","paNt",paNt,"Fth",Fth});
+%!  assert(abs(depth - depth0) < 1e-2 * abs(depth0));
+## - tests
+%!test __test_sens_houghfstat(Rsqr,0.01,0.05,5.2,100,53.352)
+%!test __test_sens_houghfstat(Rsqr,1e-07,0.05,5.2,100,39.125)
+%!test __test_sens_houghfstat(Rsqr,1e-12,0.1,5.2,100,36.324)

@@ -15,15 +15,30 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} { [ @var{binq}, @dots{} ] =} histBinsGrids ( @var{hgrm}, @var{k}, @code{type}, @dots{} )
+##
 ## Return quantities relating to the histogram bin boundaries,
 ## in gridded arrays of the same size as the probability array.
-## Syntax:
-##   [binq, ...] = histBinsGrids(hgrm, k, "type", ...)
-## where:
-##   hgrm = histogram object
-##   k    = dimension along which to return bin quantities
-##   type = see histBins()
-##   binq = bin quantities
+##
+## @heading Arguments
+##
+## @table @var
+## @item hgrm
+## histogram object
+##
+## @item k
+## dimension along which to return bin quantities
+##
+## @item type
+## see @command{histBins()}
+##
+## @item binq
+## bin quantities
+##
+## @end table
+##
+## @end deftypefn
 
 function varargout = histBinGrids(hgrm, k, varargin)
 
@@ -53,3 +68,9 @@ function varargout = histBinGrids(hgrm, k, varargin)
   endfor
 
 endfunction
+
+%!shared hgrm
+%!  hgrm = restrictHist(addDataToHist(Hist(2, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}), unifrnd(0, 1, 1e6, 2)));
+%!assert(histBinGrids(hgrm, 1, "lower"), [-inf, 0:0.1:0.9, inf]' * ones(1, 12), 1e-3)
+%!assert(histBinGrids(hgrm, 1, "centre"), [-inf, 0.05:0.1:0.95, inf]' * ones(1, 12), 1e-3)
+%!assert(histBinGrids(hgrm, 1, "upper"), [-inf, 0.1:0.1:1.0, inf]' * ones(1, 12), 1e-3)

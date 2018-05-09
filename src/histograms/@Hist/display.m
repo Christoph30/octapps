@@ -15,11 +15,20 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {} display ( @var{hgrm} )
+##
 ## Display a histogram object.
-## Syntax:
-##   display(hgrm)
-## where:
-##   hgrm = histogram object
+##
+## @heading Arguments
+##
+## @table @var
+## @item hgrm
+## histogram object
+##
+## @end table
+##
+## @end deftypefn
 
 function s = display(hgrm)
 
@@ -37,3 +46,11 @@ function s = display(hgrm)
   printf("}\n");
 
 endfunction
+
+%!test
+%!  display(Hist())
+%!  display(Hist(1, {"lin", "dbin", 0.1}))
+%!  display(Hist(2, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}))
+%!  display(Hist(3, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}))
+%!  display(Hist(4, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}))
+%!  display(Hist(5, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}))

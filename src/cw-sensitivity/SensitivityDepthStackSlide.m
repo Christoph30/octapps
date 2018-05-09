@@ -16,46 +16,85 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{sensDepth} =} SensitivityDepthStackSlide ( @var{opt}, @var{val}, @dots{} )
+##
 ## Estimate StackSlide sensitivity depth, defined as
 ##
-## sensDepth = sqrt(Sdata)/h0,
+## @var{sensDepth} = sqrt(@var{Sdata})/@var{h0},
 ##
-## where 'Sdata' is an estimate of the noise PSD over all the data used
-## (which should be computed as the harmonic mean over all the SFTs from
-## all detectors), and 'h0' is the smallest detectable GW amplitude at the
-## given false-alarm (pFA) and false-dismissal probability (pFD)
+## where
 ##
-## Usage:
-##   sensDepth = SensitivityDepthStackSlide("opt", val, ...)
-## Options are:
-##   "Nseg":            number of StackSlide segments (every row is one trial, every column is for one stage )
-##   "Tdata":           total amount of data used, in seconds
-##                      can be a row vector for different amounts of data in each stage
-##                      or a column vector for different trial setups or matrix for both combined
-##                      (Note: Tdata = Nsft * Tsft, where 'Nsft' is the total number of
-##                      SFTs of length 'Tsft' used in the search, from all detectors)
-##   "misHist":         cell array of mismatch histograms, one for every stage, produced using Hist()
-##   "pFD":             false-dismissal probability = 1 - pDet = 1 - 'confidence'
-##   "pFA":             false-alarm probability (-ies) *per template* (every row is one trial, every column is for one stage )
-##   "avg2Fth"		ALTERNATIVE to pFA: average-2F threshold (every row is one trial, every column is for one stage )
-##   "detectors":       CSV list of detectors to use ("H1"=Hanford, "L1"=Livingston, "V1"=Virgo, ...)
-##   "detweights":      detector weights on S_h to use (default: uniform weights)
-##   "alpha":           source right ascension in radians (default: all-sky)
-##   "delta":           source declination (default: all-sky)
-##   "psi":             polarization angle (default: isotropic average)
-##   "cosi":            orientation angle (default: isotropic average)
-##   "Bayesian":        true for Bayesian Depth, false for frequentist
+## @table @var
+## @item Sdata
+## an estimate of the noise PSD over all the data used (which should be computed
+## as the harmonic mean over all the SFTs from all @var{detectors})
+## @item h0
+## the smallest detectable GW amplitude at the given false-alarm (@var{pFA}) and
+## false-dismissal probability (@var{pFD})
+## @end table
 ##
-##  Example input:
-##              Nseg = [90,90,44,44,22;100,100,50,50,25]                          two different setups with 5 stages (5 columns, 2 rows)
-##              Tdata = [ NSFT*1800, NSFT*900, NSFT*3600, NSFT*1800, NSFT*1800]   different for every stage but the same for every trial
-##              avg2Fth = [6.109,6.109,7.38,8.82,15]                              as we have 5 stages there must be five thresholds
-##              misHist = {mismatch1, mismatch2, mismatch3, mismatch4, mismatch5} we also need one mismatch histogram per stage
-##              pFD = [0.1,0.05]'                                                 a column with two false dimissal probabilitites, one for each trial
+## @heading Options
 ##
+## @table @code
+## @item Nseg
+## number of StackSlide segments (every row is one trial, every column is for one stage )
 ##
+## @item Tdata
+## total amount of data used, in seconds
+## can be a row vector for different amounts of data in each stage
+## or a column vector for different trial setups or matrix for both combined
+## (Note: @var{Tdata} = @var{Nsft} * @var{Tsft}, where @var{Nsft} is the total number of
+## SFTs of length @var{Tsft} used in the search, from all @var{detectors})
 ##
-
+## @item misHist
+## cell array of mismatch histograms, one for every stage, produced using @command{Hist()}
+##
+## @item pFD
+## false-dismissal probability = 1 - pDet = 1 - 'confidence'
+##
+## @item pFA
+## false-alarm probability (-ies) *per template* (every row is one trial, every column is for one stage )
+## "avg2Fth"          ALTERNATIVE to @var{pFA}: average-2F threshold (every row is one trial, every column is for one stage )
+##
+## @item detectors
+## CSV list of @var{detectors} to use ("H1"=Hanford, "L1"=Livingston, "V1"=Virgo, @var{...})
+##
+## @item detweights
+## detector weights on S_h to use (default: uniform weights)
+##
+## @item alpha
+## source right ascension in radians (default: all-sky)
+##
+## @item delta
+## source declination (default: all-sky)
+##
+## @item psi
+## polarization angle (default: isotropic average)
+##
+## @item cosi
+## orientation angle (default: isotropic average)
+##
+## @item Bayesian
+## true for Bayesian Depth, false for frequentist
+##
+## @end table
+##
+## @heading Example
+## @verbatim
+## ## two different setups with 5 stages (5 columns, 2 rows)
+## Nseg = [90,90,44,44,22;100,100,50,50,25]
+## ## different for every stage but the same for every trial
+## Tdata = [ NSFT*1800, NSFT*900, NSFT*3600, NSFT*1800, NSFT*1800]
+## ## as we have 5 stages there must be five thrqesholds
+## avg2Fth = [6.109,6.109,7.38,8.82,15]
+## ## we also need one mismatch histogram per stage
+## misHist = {mismatch1, mismatch2, mismatch3, mismatch4, mismatch5}
+## ## a column with two false dimissal probabilitites, one for each trial
+## pFD = [0.1,0.05]'
+## @end verbatim
+##
+## @end deftypefn
 
 function sensDepth = SensitivityDepthStackSlide ( varargin )
 
@@ -73,7 +112,7 @@ function sensDepth = SensitivityDepthStackSlide ( varargin )
 		       {"delta", "real,vector", [-pi/2, pi/2]},
 		       {"psi", "real,vector", [0, 2*pi]},
 		       {"cosi", "real,vector", [-1, 1]},
-           {"Bayesian", "logical,scalar", false},
+		       {"Bayesian", "logical,scalar", false},
 		       []);
 
   ## check input
@@ -81,7 +120,7 @@ function sensDepth = SensitivityDepthStackSlide ( varargin )
   assert ( isempty ( uvar.pFA ) || isempty ( uvar.avg2Fth ), "Must specify exactly one of 'pFA' or 'avg2Fth' to determine false-alarm probability!\n" );
   assert ( !isempty(uvar.Tdata), "Tdata must be specified.\n");
   assert ( isempty(uvar.misHist) ||(((size(uvar.pFA,2) == length(uvar.misHist)) || (size(uvar.avg2Fth,2) == length(uvar.misHist))) && size(uvar.Nseg,2) == length(uvar.misHist)) ,
-	   "#stages unclear, #columns in pFA/avg2Fth and Nseg must match #mismatch histograms.\n");
+           "#stages unclear, #columns in pFA/avg2Fth and Nseg must match #mismatch histograms.\n");
 
   ## determine R^2 histogram
   persistent persparams = {uvar.alpha,uvar.delta,uvar.detectors,uvar.detweights, uvar.psi, uvar.cosi};
@@ -109,7 +148,7 @@ function sensDepth = SensitivityDepthStackSlide ( varargin )
   else
     sensDepth = SensitivityDepthBayesian ( "pd", uvar.pFD, "Ns", uvar.Nseg, "Tdata",uvar.Tdata, "Rsqr", Rsqr,"misHist",uvar.misHist, "stat", {"ChiSqr", FAarg{:}} );
   endif
-
+  
 endfunction
 
 ## compare with simulated perfect match depth for S5GC1HF

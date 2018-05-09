@@ -14,24 +14,32 @@
 ## along with Octave; see the file COPYING.  If not, see
 ## <http://www.gnu.org/licenses/>.
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{prog} =} printProgress ( @dots{} )
+##
 ## Prints a progress message at decreasing intervals, displaying
 ## the number of tasks completed, CPU usage, time elasped/remaining
-## Usage:
-##   prog = [];
-##   for i = 1:5000
-##     for j = 1:5
-##       doSomeTask(i, j, ...);
-##       prog = printProgress(prog, "inner loop", [i, j], [5000, 5]);
-##     endfor
-##     prog = printProgress(prog, [i, j], [5000, 5]);
+##
+## @heading Example
+## @verbatim
+## prog = [];
+## for i = 1:5000
+##   for j = 1:5
+##     doSomeTask(i, j, ...);
+##     prog = printProgress(prog, "inner loop", [i, j], [5000, 5]);
 ##   endfor
+##   prog = printProgress(prog, [i, j], [5000, 5]);
+## endfor
+## @end verbatim
+##
+## @end deftypefn
 
 function prog = printProgress(prog, varargin)
 
   ## always print output
   page_screen_output(0, "local");
 
-  # check input
+  ## check input
   narginchk(3, 4);
   if ischar(varargin{1})
     assert(nargin == 4);
@@ -99,7 +107,7 @@ function prog = printProgress(prog, varargin)
     ## work out remaining wall time, assuming all tasks take the same amount of time
     wall_rem = wall * ( (1 / (prog.f_tasks + eps)) - 1 );
 
-    # print progress
+    ## print progress
     printf("%s: %s %0.1f%%, CPU %0.1f%%, %0.0fs elapsed", name, taskstr, 100*prog.f_tasks, 100*cpu_use, wall);
     if prog.f_tasks < 1
       printf(", %0.0fs remain", wall_rem);
@@ -112,3 +120,12 @@ function prog = printProgress(prog, varargin)
   endif
 
 endfunction
+
+%!test
+%!  prog = [];
+%!  for i = 1:50
+%!    for j = 1:5
+%!      prog = printProgress(prog, "inner loop", [i, j], [50, 5]);
+%!    endfor
+%!    prog = printProgress(prog, [i, j], [50, 5]);
+%!  endfor

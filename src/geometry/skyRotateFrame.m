@@ -14,19 +14,21 @@
 ## along with Octave; see the file COPYING.  If not, see
 ## <http://www.gnu.org/licenses/>.
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{skyOut} =} skyRotateFrame ( @var{skyIn}, @var{angle}, @var{axis} )
+##
 ## Convert a sky-position given in terms of 'longitude' and 'latitude'
-## angles into a unit vector vn = [nx, ny, nz] in the same reference frame
+## angles into a unit vector @code{vn = [nx, ny, nz]} in the same reference frame
 ## (ie either in equatorial or ecliptic system).
 ##
-## Usage:
-##   skyOut = skyRotateFrame ( skyIn, angle, axis )
+## convert input sky-position by rotating the reference by @var{angle} around 3-vector @var{axis}'
 ##
-## convert input sky-position by rotating the reference by 'angle' around 3-vector 'axis'
-##
-## Input 3-vectors are interpreted as sky-vectors vn = [nx, ny, nz] (un-normalized),
-## while 2-vectors are interpreted as sky angles [longitude, latitude],
+## Input 3-vectors are interpreted as sky-vectors @code{vn = [nx, ny, nz]} (un-normalized),
+## while 2-vectors are interpreted as sky angles @code{[longitude, latitude]},
 ## and the output uses the same format as the input (ie vector --> vector, angles-->angles).
 ## Multiple values can be input as column-vectors, ie Nx3 for vectors vn, Nx2 for angles
+##
+## @end deftypefn
 
 function skyOut = skyRotateFrame ( skyIn, angle, axis )
 
@@ -41,9 +43,9 @@ function skyOut = skyRotateFrame ( skyIn, angle, axis )
   else
     vnIn = skyIn;
   endif
-  rotM = rotationMatrix ( angle, axis );	## rotation matrix in-->out
+  rotM = rotationMatrix ( angle, axis );        ## rotation matrix in-->out
   vnOut = rotM * vnIn';
-  vnOut = vnOut';	%% return in N x 3 format
+  vnOut = vnOut';       ## return in N x 3 format
 
   ## return in same 'coordinates' as input: sky-vector or sky-angles
   if ( haveAngles )
@@ -55,3 +57,5 @@ function skyOut = skyRotateFrame ( skyIn, angle, axis )
   return;
 
 endfunction
+
+%!assert(skyRotateFrame([0.1, 2.3, 4.5], 1.234, [9.8, 7.6, 5.4]), [3.0863, -1.0902, 3.8518], 1e-3)

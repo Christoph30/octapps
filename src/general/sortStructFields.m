@@ -14,7 +14,7 @@
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} {[@var{s}] =} sortStructFields (@var{s})
+## @deftypefn {Function File} { [ @var{s} ] =} sortStructFields ( @var{s} )
 ##
 ## Return the struct @var{S} with its fields sorted alphabetically.
 ##
@@ -39,7 +39,6 @@ function S = sortStructFields(S)
   S = cell2struct(V, N);
 
 endfunction
-
 
 %!test
 %!  S1 = struct('name', {'Peter', 'Hannah', 'Robert'}, 'age', {23, 16, 3});

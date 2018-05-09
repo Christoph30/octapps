@@ -15,12 +15,23 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{dim} =} histDim ( @var{hgrm} )
+##
 ## Returns the dimensionality of a histogram object.
-## Syntax:
-##   dim = histDim(hgrm)
-## where:
-##   hgrm = histogram object
-##   dim  = dimensionality of the histogram
+##
+## @heading Arguments
+##
+## @table @var
+## @item hgrm
+## histogram object
+##
+## @item dim
+## dimensionality of the histogram
+##
+## @end table
+##
+## @end deftypefn
 
 function dim = histDim(hgrm)
 
@@ -31,3 +42,9 @@ function dim = histDim(hgrm)
   dim = length(hgrm.bins);
 
 endfunction
+
+%!assert(histDim(Hist(1, {"lin", "dbin", 0.1})), 1)
+%!assert(histDim(Hist(2, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1})), 2)
+%!assert(histDim(Hist(3, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1})), 3)
+%!assert(histDim(Hist(4, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1})), 4)
+%!assert(histDim(Hist(5, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1}, {"lin", "dbin", 0.1})), 5)

@@ -14,6 +14,16 @@
 ## along with Octave; see the file COPYING.  If not, see
 ## <http://www.gnu.org/licenses/>.
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {} DebugPrintf ( @var{level}, @var{args}@dots{} )
+##
+## If @var{debugLevel} >= @var{level}, then print @var{args}@dots{} using
+## @code{fprintf()} to @file{stderr}.
+##
+## @var{debugLevel} is a global variable declared with @code{global}.
+##
+## @end deftypefn
+
 function DebugPrintf ( level, varargin )
   global debugLevel;
   if ( isempty ( debugLevel ) ) debugLevel = 0; endif
@@ -22,4 +32,9 @@ function DebugPrintf ( level, varargin )
     fprintf ( stderr, varargin{:} );
   endif
   return;
-endfunction %% DebugPrintf()
+endfunction ## DebugPrintf()
+
+%!test
+%!  global debugLevel;
+%!  debugLevel = 1;
+%!  DebugPrintf(0, "Hi there\n");

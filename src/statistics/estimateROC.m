@@ -15,15 +15,20 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
-## Usage: [pDet_MPE, pDet_Lower, pDet_Upper, pFA_MPE, pFA_Lower, pFA_Upper] = estimateROC ( DATA_noise, DATA_signal, pFA, confidence=0.95 )
+## -*- texinfo -*-
+## @deftypefn {Function File} { [ @var{pDet_MPE}, @var{pDet_Lower}, @var{pDet_Upper}, @var{pFA_MPE}, @var{pFA_Lower}, @var{pFA_Upper} ] =} estimateROC ( @var{DATA_noise}, @var{DATA_signal}, @var{pFA}, @var{confidence} = 0.95 )
 ##
-## Compute the Receiver Operator Characteristic (ROC) function pDet(pFA) on given samples drawn under
-## the noise hypothesis, DATA_noise, and under the signal hypothesis, DATA_signal.
+## Compute the Receiver Operator Characteristic (ROC) function pDet(@var{pFA}) on given samples drawn under
+## the noise hypothesis, @var{DATA_noise}, and under the signal hypothesis, @var{DATA_signal}.
 ## Returns estimates for the detection-probability and false-alarm probability for the given DATA samples and
-## a vector of desired false-alarm probabilities pFA.
+## a vector of desired false-alarm probabilities @var{pFA}.
 ##
-## Note: this function replaces the deprecated estimateFalseDismissal()
+## @heading Note
 ##
+## this function replaces the deprecated @command{estimateFalseDismissal()}
+##
+## @end deftypefn
+
 function [pDet_MPE, pDet_Lower, pDet_Upper, pFA_MPE, pFA_Lower, pFA_Upper] = estimateROC ( DATA_noise, DATA_signal, pFA, confidence=0.95 )
 
   assert ( isscalar ( confidence ) );
@@ -36,6 +41,12 @@ function [pDet_MPE, pDet_Lower, pDet_Upper, pFA_MPE, pFA_Lower, pFA_Upper] = est
 
 endfunction
 
+%!test
+%!  Ntrials_N = 600; Ntrials_S = 300;
+%!  stat_S = normrnd ( 1, 1, 1, Ntrials_S );
+%!  stat_N = normrnd ( 0, 1, 1, Ntrials_N );
+%!  pFA = linspace ( 0, 1, 15 );
+%!  [pDet_MPE, pDet_Lower, pDet_Upper, pFA_MPE, pFA_Lower, pFA_Upper] = estimateROC ( stat_N, stat_S, pFA, confidence=0.9545 );
 %!demo
 %!  Ntrials_N = 600; Ntrials_S = 300;
 %!  stat_S = normrnd ( 1, 1, 1, Ntrials_S );

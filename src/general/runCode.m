@@ -16,8 +16,8 @@
 ## <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} {} runCode(@var{params}, @var{code}, [@var{verbose}=false])
-## @deftypefnx{Function File} {@var{output} =} runCode(@dots{})
+## @deftypefn {Function File} {} runCode ( @var{params}, @var{code}, [ @var{verbose} = false ] )
+## @deftypefnx{Function File} {@var{output} =} runCode ( @dots{} )
 ##
 ## Generic code-running driver: run @var{code}, passing any command-line
 ## options in the struct @var{params}, which are passed to @var{code}
@@ -51,18 +51,19 @@ function output = runCode(params, code, verbose=false)
 
     if ( ischar ( val ) )
       valstr = sprintf ("'%s'", val );
-    elseif ( isscalar (val) && isreal (val) )
-      valstr = sprintf ("%.16g", val );
+    elseif ( isreal (val) && isvector(val) )
+      tmp = sprintf ("%.16g,", val );
+      valstr = tmp(1:end-1);    ## remove trailing ','
     elseif ( islogical ( val ) )
       valstr = sprintf ("%d", val );
     else
-      error ("%s: Field '%s' is neither a string, bool or real scalar!\n", funcName, option );
+      error ("%s: Field '%s' is neither a string, bool or real vector!\n", funcName, option );
     endif
 
     if strcmp( option, "LAL_DEBUG_LEVEL" )
       env = sprintf( "export LAL_DEBUG_LEVEL='%s'; ", valstr );
     elseif length(option) == 1
-      cmdline = cstrcat ( cmdline, " -", option, " ", valstr ); # need cstrcat() here because in recent octave versions (>3.6?), strcat trims whitespaces
+      cmdline = cstrcat ( cmdline, " -", option, " ", valstr ); ## need cstrcat() here because in recent octave versions (>3.6?), strcat trims whitespaces
     else
       cmdline = strcat ( cmdline, " --", option, "=", valstr );
     endif
@@ -89,3 +90,6 @@ function output = runCode(params, code, verbose=false)
   endif
 
 endfunction
+
+%!test
+%!  runCode(struct("c", 'echo "This is a test of runCode()"'), "/bin/sh");

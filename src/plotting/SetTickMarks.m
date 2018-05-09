@@ -14,12 +14,23 @@
 ## along with Octave; see the file COPYING.  If not, see
 ## <http://www.gnu.org/licenses/>.
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {} SetTickMarks ( @var{dim}, @var{nticks} )
+##
 ## Try to generate a given number of ticks on a given axis.
-## Usage:
-##   SetTickMarks(dim, nticks)
-## where
-##   dim    = "x"|"y"|"z"
-##   nticks = number of ticks to try to generate
+##
+## @heading Arguments
+##
+## @table @var
+## @item dim
+## one of @code{x}, @code{y}, @code{z}
+##
+## @item nticks
+## number of ticks to try to generate
+##
+## @end table
+##
+## @end deftypefn
 
 function SetTickMarks(dim, nticks)
 
@@ -40,3 +51,10 @@ function SetTickMarks(dim, nticks)
   set(gca, strcat(dim, "lim"), lim, strcat(dim, "tick"), ticks);
 
 endfunction
+
+%!test
+%!  fig = figure("visible", "off");
+%!  plot(0:100, mod(0:100, 10));
+%!  SetTickMarks("x", 4);
+%!  SetTickMarks("y", 4);
+%!  close(fig);

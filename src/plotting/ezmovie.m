@@ -13,24 +13,50 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {} ezmovie ( @code{start}, @var{opt}, @var{val}, @dots{} ) ;
+## @deftypefnx{Function File} {} ezmovie ( @code{add} ) ;
+## @deftypefnx{Function File} {} ezmovie ( @code{stop} ) ;
+##
 ## Generate a H.264/MPEG-4 AVC movie from a sequence of figures.
-## Requires the command 'avconv' from Libav to be available.
-## Usage:
-##   ezmovie("start", "opt", val, ...);
-##   plot(...);
-##   ezmovie add;
-##   plot(...);
-##   ezmovie add;
-##   ...
-##   ezmovie stop;
-## Options to 'ezmovie start':
-##   "filebasename": basename of movie file; extension will be ".mp4"
-##   "delay":        delay between each figure, in seconds
-##   "width":        width of movie, in pixels
-##   "height":       height of movie, in pixels
-##   "fontsize":     font size of printed figure, in points (default: 10)
-##   "linescale":    factor to scale line width of figure objects (default: 1)
-##   "verbose":      if true, print verbose output from 'avconv'
+## Requires the command @code{ffmpeg} or @code{avconv} to be available.
+##
+## @heading Options to ezmovie(@code{start})
+##
+## @table @var
+## @item filebasename
+## basename of movie file; extension will be ".mp4"
+##
+## @item delay
+## @var{delay} between each figure, in seconds
+##
+## @item width
+## @var{width} of movie, in pixels
+##
+## @item height
+## @var{height} of movie, in pixels
+##
+## @item fontsize
+## font size of printed figure, in points (default: 10)
+##
+## @item linescale
+## factor to scale line @var{width} of figure objects (default: 1)
+##
+## @item verbose
+## if true, print @var{verbose} output from @code{ffmpeg} or @code{avconv}
+##
+## @end table
+##
+## @heading Example
+## @verbatim
+## ezmovie("start", "opt", val, ...);
+## plot(...);
+## ezmovie add;
+## plot(...);
+## ezmovie add;
+## @end verbatim
+##
+## @end deftypefn
 
 function ezmovie(action, varargin)
 
@@ -41,17 +67,20 @@ function ezmovie(action, varargin)
 
     case "start"   ## start movie generation
 
-      ## close any open 'avconv' pipe
-      if isfield(state, "avconv_pid")
-        kill(state.avconv_pid, SIG.INT);
-        fclose(state.avconv_fin);
+      ## close any open 'ffmpeg'/'avconv' pipe
+      if isfield(state, "ffmpeg_pid")
+        kill(state.ffmpeg_pid, SIG.INT);
+        fclose(state.ffmpeg_fin);
         state = [];
       endif
 
-      ## check if command 'avconv' from Libav is installed
-      avconv = file_in_path(EXEC_PATH, "avconv");
-      if isempty(avconv)
-        error("%s: requires 'avconv' to be installed", funcName);
+      ## check if command 'ffmpeg'/'avconv' is installed
+      ffmpeg = file_in_path(getenv("PATH"), "ffmpeg");
+      if isempty(ffmpeg)
+        ffmpeg = file_in_path(getenv("PATH"), "avconv");
+        if isempty(ffmpeg)
+          error("%s: requires either 'ffmpeg' or 'avconv' to be installed", funcName);
+        endif
       endif
 
       ## parse options
@@ -65,24 +94,24 @@ function ezmovie(action, varargin)
                            {"verbose", "logical,scalar", false},
                            []);
 
-      ## build 'avconv' command
+      ## build 'ffmpeg'/'avconv' command
       if state.verbose
-        avconv_loglevel = "verbose";
+        ffmpeg_loglevel = "verbose";
       else
-        avconv_loglevel = "error";
+        ffmpeg_loglevel = "error";
       endif
-      avconv_args = { ...
-                      "-y", "-v", avconv_loglevel, ...
+      ffmpeg_args = { ...
+                      "-y", "-v", ffmpeg_loglevel, ...
                       "-f", "image2pipe", ...
                       "-codec:v", "mjpeg", "-framerate", num2str(1.0 / state.delay), "-i", "pipe:", ...
                       "-codec:v", "libx264", "-qscale", "1", "-profile:v", "baseline", ...
                       strcat(state.filebasename, ".mp4") ...
                     };
-      state.avconv_cmd = strcat(avconv, sprintf(" %s", avconv_args{:}));
+      state.ffmpeg_cmd = strcat(ffmpeg, sprintf(" %s", ffmpeg_args{:}));
 
-      ## create input pipe to 'avconv', which will be fed JPEG images to create movie
-      [state.avconv_fin, avconv_fout, state.avconv_pid] = popen2(avconv, avconv_args);
-      fclose(avconv_fout);
+      ## create input pipe to 'ffmpeg'/'avconv', which will be fed JPEG images to create movie
+      [state.ffmpeg_fin, ffmpeg_fout, state.ffmpeg_pid] = popen2(ffmpeg, ffmpeg_args);
+      fclose(ffmpeg_fout);
 
     case "add"
 
@@ -90,10 +119,10 @@ function ezmovie(action, varargin)
       assert(nargin == 1, "%s: action '%s' takes no options", funcName, action);
 
       ## check that movie generation has been correctly started
-      assert(isfield(state, "avconv_pid"), "%s: movie generation has not been started", funcName);
+      assert(isfield(state, "ffmpeg_pid"), "%s: movie generation has not been started", funcName);
 
       ## get temporary file name to print JPEG image to
-      jpgfile = strcat(tempname, ".jpg");
+      jpgfile = strcat(tempname(tempdir), ".jpg");
 
       ## ensure temporary JPEG files get deleted on error
       fjpg = -1;
@@ -109,9 +138,9 @@ function ezmovie(action, varargin)
         assert(fjpg >= 0, "%s: could not open temporary JPEG file: %s", err_msg);
         jpg = fread(fjpg);
 
-        ## write JPEG image to 'avconv' pipe
-        fwrite(state.avconv_fin, jpg);
-        fflush(state.avconv_fin);
+        ## write JPEG image to 'ffmpeg'/'avconv' pipe
+        fwrite(state.ffmpeg_fin, jpg);
+        fflush(state.ffmpeg_fin);
 
       unwind_protect_cleanup
 
@@ -123,18 +152,18 @@ function ezmovie(action, varargin)
 
       end_unwind_protect
 
-      ## check that 'avconv' has not encountered errors
-      assert(ferror(state.avconv_fin) == 0, "%s: '%s' has failed!", funcName, state.avconv_cmd);
+      ## check that 'ffmpeg'/'avconv' has not encountered errors
+      assert(waitpid(state.ffmpeg_pid, WNOHANG) == 0, "%s: '%s' has failed!", funcName, state.ffmpeg_cmd);
 
     case "stop"   ## stop movie generation
 
       ## this action takes no options
       assert(nargin == 1, "%s: action '%s' takes no options", funcName, action);
 
-      ## close any open 'avconv' pipe
-      if isfield(state, "avconv_pid")
-        kill(state.avconv_pid, SIG.INT);
-        fclose(state.avconv_fin);
+      ## close any open 'ffmpeg'/'avconv' pipe
+      if isfield(state, "ffmpeg_pid")
+        fclose(state.ffmpeg_fin);
+        waitpid(state.ffmpeg_pid);
         state = [];
       endif
 
@@ -144,3 +173,19 @@ function ezmovie(action, varargin)
   endswitch
 
 endfunction
+
+%!test
+%!  if isempty(file_in_path(getenv("PATH"), "ffmpeg")) && isempty(file_in_path(getenv("PATH"), "avconv"))
+%!    disp("skipping test: neither 'ffmpeg' or 'avconv' proograms are available"); return;
+%!  endif
+%!  graphics_toolkit gnuplot;
+%!  movbname = tempname(tempdir);
+%!  ezmovie("start", "filebasename", movbname, "delay", 0.01, "width", 100, "height", 100);
+%!  fig = figure("visible", "off");
+%!  for i = 1:10
+%!    plot(0:100, mod(i + (0:100), 10));
+%!    ezmovie add;
+%!  endfor
+%!  ezmovie stop;
+%!  close(fig);
+%!  assert(exist(strcat(movbname, ".mp4"), "file"));

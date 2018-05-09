@@ -15,14 +15,25 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {} makeCondorRescueDAG ( @var{opt}, @var{val}, @dots{} )
+##
 ## Build a rescue Condor DAG to rerun jobs with missing or corrupt result files.
-## Usage:
-##   makeCondorRescueDAG("opt", val, ...)
-## Options:
-##   "dag_name":       Name of Condor DAG, used to name DAG submit file.
-##   "check_load":     If true, check that result file can be loaded and
-##                     its contents are not corrupted; otherwise, just
-##                     check that result file exists [default: true].
+##
+## @heading Options
+##
+## @table @code
+## @item dag_name
+## Name of Condor DAG, used to name DAG submit file.
+##
+## @item check_load
+## If true, check that result file can be loaded and
+## its contents are not corrupted; otherwise, just
+## check that result file exists [default: true].
+##
+## @end table
+##
+## @end deftypefn
 
 function makeCondorRescueDAG(varargin)
 
@@ -35,7 +46,7 @@ function makeCondorRescueDAG(varargin)
   ## load job node data
   dag_nodes_file = strcat(dag_name, "_nodes.bin.gz");
   printf("%s: loading '%s' ...", funcName, dag_nodes_file);
-  load(dag_nodes_file);
+  load(fullfile(".", dag_nodes_file));
   assert(isstruct(job_nodes), "%s: 'job_nodes' is not a struct", funcName);
   printf(" done\n");
 
@@ -119,3 +130,5 @@ function makeCondorRescueDAG(varargin)
   error("%s: could not find a vacant rescue DAG name for '%s'", funcName, dag_name);
 
 endfunction
+
+%!test disp("no test exists for this function as it requires access to an HTCondor computer cluster")

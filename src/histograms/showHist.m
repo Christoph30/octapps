@@ -15,11 +15,20 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {} showHist ( @var{hgrm} )
+##
 ## Show the contents of a histogram object.
-## Syntax:
-##   showHist(hgrm)
-## where:
-##   hgrm = histogram object
+##
+## @heading Arguments
+##
+## @table @var
+## @item hgrm
+## histogram object
+##
+## @end table
+##
+## @end deftypefn
 
 function s = showHist(hgrm)
 
@@ -57,3 +66,7 @@ function s = showHist(hgrm)
   printf("{\n%s}\n", list_in_columns(strs, [], "  "));
 
 endfunction
+
+%!test
+%!  hgrm = createGaussianHist(1.2, 3.4, "binsize", 0.1);
+%!  showHist(hgrm);

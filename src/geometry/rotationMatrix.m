@@ -14,13 +14,19 @@
 ## along with Octave; see the file COPYING.  If not, see
 ## <http://www.gnu.org/licenses/>.
 
-## computes the rotation matrix for an *active* rotation by 'angle' around
-## the axis 'rotAxis' (3d vector)
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{rotMatrix} =} rotationMatrix ( @var{angle}, @var{rotAxis} )
+##
+## computes the rotation matrix for an *active* rotation by @var{angle} around
+## the axis @var{rotAxis} (3d vector)
+##
+## @end deftypefn
+
 function rotMatrix = rotationMatrix ( angle, rotAxis )
 
   assert ( isvector ( rotAxis ) && (length(rotAxis) == 3), "%s: rotation Axis must be a 3-vector.\n", funcName );
 
-  u = rotAxis / norm(rotAxis);	## unit vector
+  u = rotAxis / norm(rotAxis);  ## unit vector
   x = u(1); y = u(2); z = u(3);
 
   ## Taken from wikipedia: http://en.wikipedia.org/wiki/Rotation_matrix
@@ -30,7 +36,12 @@ function rotMatrix = rotationMatrix ( angle, rotAxis )
   xyC = x*yC; yzC = y*zC; zxC = z*xC;
 
   rotMatrix = [ x * xC + c, xyC - zs,  zxC + ys ;
-	       xyC + zs,    y * yC + c,    yzC - xs ;
-	       zxC - ys,    yzC + xs,   z * zC + c ];
+                xyC + zs,    y * yC + c,    yzC - xs ;
+                zxC - ys,    yzC + xs,   z * zC + c ];
 
 endfunction ## rotationMatrix()
+
+%!shared rotMatrix
+%!  rotMatrix = rotationMatrix(1.357, [0.9, 8.7, 6.5]);
+%!assert(ismatrix(rotMatrix))
+%!assert(rotMatrix' * rotMatrix, eye(3), 1e-3)

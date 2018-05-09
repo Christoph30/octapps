@@ -14,12 +14,23 @@
 ## along with Octave; see the file COPYING.  If not, see
 ## <http://www.gnu.org/licenses/>.
 
-## Read a .ini style configuration file into a struct.
-## Usage:
-##   cfg  = readConfigFile(file)
-## where
-##   cfg  = configuration file contents
-##   file = configuration file
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{cfg} =} readConfigFile ( @var{file} )
+##
+## Read a .ini style configuration @var{file} into a struct.
+##
+## @heading Arguments
+##
+## @table @var
+## @item cfg
+## configuration @var{file} contents
+##
+## @item file
+## configuration file
+##
+## @end table
+##
+## @end deftypefn
 
 function cfg = readConfigFile(file)
 
@@ -148,3 +159,12 @@ function cfg = readConfigFile(file)
   fclose(f);
 
 endfunction
+
+%!test
+%!  inifile = strcat(tempname(tempdir), ".ini");
+%!  inicfg = struct("sec1", struct("key1", 1.23, "key2", "hi"), "sec2", struct("key3", "there"));
+%!  writeConfigFile(inifile, inicfg);
+%!  inicfg2 = readConfigFile(inifile);
+%!  assert(inicfg.sec1.key1, inicfg2.sec1.key1);
+%!  assert(inicfg.sec1.key2, inicfg2.sec1.key2);
+%!  assert(inicfg.sec2.key3, inicfg2.sec2.key3);

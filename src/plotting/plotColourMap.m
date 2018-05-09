@@ -14,12 +14,26 @@
 ## along with Octave; see the file COPYING.  If not, see
 ## <http://www.gnu.org/licenses/>.
 
-## Visualise a colour map.
-## Usage:
-##   plotColourMap(map, [name])
-## where
-##   map  = colour map
-##   name = optional colour map name
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{lum} =} plotColourMap ( @var{map}, [ @var{name} ] )
+##
+## Visualise a colour @var{map}.
+##
+## @heading Arguments
+##
+## @table @var
+## @item map
+## colour map
+##
+## @item name
+## optional colour @var{map} name
+##
+## @item lum
+## luma of colour map
+##
+## @end table
+##
+## @end deftypefn
 
 function plotColourMap(map, name="")
 
@@ -39,6 +53,9 @@ function plotColourMap(map, name="")
   g = map(:, 2);
   b = map(:, 3);
   lum = r * 0.299 + g * 0.587 + b * 0.114;
+  if nargout == 0
+    return
+  endif
 
   ## visualise colour map
   clf reset;
@@ -61,3 +78,6 @@ function plotColourMap(map, name="")
   ylabel("Intensity");
 
 endfunction
+
+%!test
+%!  plotColourMap(colormap());

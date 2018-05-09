@@ -15,13 +15,24 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
-## Adds the given input data to the histogram.
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{hgrm} =} addDataToHist ( @var{hgrm}, @var{data} )
+##
+## Adds the given input @var{data} to the histogram.
 ## If the histogram is too small, more bins are added.
-## Syntax:
-##   hgrm = addDataToHist(hgrm, data)
-## where:
-##   hgrm = histogram object
-##   data = input histogram data
+##
+## @heading Arguments
+##
+## @table @var
+## @item hgrm
+## histogram object
+##
+## @item data
+## input histogram data
+##
+## @end table
+##
+## @end deftypefn
 
 function hgrm = addDataToHist(hgrm, data)
 
@@ -153,7 +164,6 @@ function hgrm = addDataToHist(hgrm, data)
   hgrm.counts(sub2ind(size(hgrm.counts), jj{:})) += nn;
 
 endfunction
-
 
 %!assert(histBins(addDataToHist(Hist(1, {"lin", "dbin", 1}), -2), 1, "finite", "bins")', -2:0)
 %!assert(histBins(addDataToHist(Hist(1, {"lin", "dbin", 1}), -1), 1, "finite", "bins")', -1:0)

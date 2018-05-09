@@ -14,14 +14,33 @@
 ## along with Octave; see the file COPYING.  If not, see
 ## <http://www.gnu.org/licenses/>.
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{ephemerides} =} loadEphemerides ( @var{opt}, @var{val}, @dots{} )
+##
 ## Load Earth and Sun ephemerides from LALPulsar.
-## Syntax:
-##   ephemerides = loadEphemerides("opt", val, ...)
-## where:
-##   ephemerides = structure containing ephemerides
-## Options:
-##   "earth_file": Earth ephemerides file (default: earth00-19-DE405.dat.gz)
-##   "sun_file": Sun ephemerides file (default: sun00-19-DE405.dat.gz)
+##
+## @heading Arguments
+##
+## @table @var
+## @item ephemerides
+## structure containing ephemerides
+##
+## @end table
+##
+## @heading Options
+##
+## @heading Options
+##
+## @table @code
+## @item earth_file
+## Earth ephemerides file (default: @file{earth00-19-DE405.dat.gz})
+##
+## @item sun_file
+## Sun ephemerides file (default: @file{sun00-19-DE405.dat.gz})
+##
+## @end table
+##
+## @end deftypefn
 
 function ephemerides = loadEphemerides(varargin)
 
@@ -35,6 +54,13 @@ function ephemerides = loadEphemerides(varargin)
                {"sun_file", "char", "sun00-19-DE405.dat.gz"},
                []);
 
+  ## use pre-loaded default ephemerides
+  global default_ephemerides;
+  if length(varargin) == 0 && !isempty(default_ephemerides)
+    ephemerides = default_ephemerides;
+    return
+  endif
+
   ## load ephemerides
   try
     ephemerides = XLALInitBarycenter(earth_file, sun_file);
@@ -42,4 +68,20 @@ function ephemerides = loadEphemerides(varargin)
     error("%s: Could not load ephemerides", funcName);
   end_try_catch
 
+  ## store pre-loaded default ephemerides
+  if length(varargin) == 0 && isempty(default_ephemerides)
+    default_ephemerides = ephemerides;
+  endif
+
 endfunction
+
+%!test
+%!  try
+%!    lal; lalpulsar;
+%!  catch
+%!    disp("skipping test: LALSuite bindings not available"); return;
+%!  end_try_catch
+%!
+%!  ephemerides = loadEphemerides();
+%!  ephemerides = loadEphemerides();
+%!  ephemerides = loadEphemerides();

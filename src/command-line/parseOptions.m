@@ -15,38 +15,73 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {} parseOptions ( @var{opts}, @var{optspec}, @var{optspec}, @dots{} )
+## @deftypefnx{Function File} {@var{paropts} =} parseOptions ( @dots{} )
+## @deftypefnx{Function File} { [ @bullet{}, @var{paropts} ] =} parseOptions ( @dots{} )
+##
 ## Kitchen-sink options parser.
-## Syntax:
-##   parseOptions(opts, optspec, optspec, ...)
-##   paropts = parseOptions(...)
-##   [~, paropts] = parseOptions(...)
+##
+## @heading Arguments
+##
+## @table @var
+## @item opts
+## function options
+##
+## @item optspec
+## option specification, one of:
+##
+## @table @asis
+## @item required option
+## @{@var{name}, @var{types}@}
+## @item optional option
+## @{@var{name}, @var{types}, @var{defvalue}@}
+## @end table
+##
 ## where:
-##   opts    = function options
-##   optspec = option specification, one of:
-##      * required option:  {'name','types'}
-##      * optional option:  {'name','types',defvalue}
-##      where:
-##         name     = name of option variable
-##         types    = datatype specification of option:
-##                    'type,type,...'
-##         defvalue = default value given to <name>
-##   paropts = struct of parsed function options (optional)
-## Notes:
-##   * using the 1st or 3rd syntax, <name> will be assigned in
-##     the context of the calling function; using the 2nd or 3rd
-##     syntax, <name> will be assigned in the return struct.
-##   * each 'type' in <types> must correspond to a function
-##     'istype': each function will be called to check that
-##     a value is valid. For example, if
-##        <types> = 'numeric,scalar'
-##     then a value <x> must satisfy:
-##        isnumeric(x) && isscalar(x)
-##   * <opts> should contain options of the form
-##        reg,reg,...,"key",val,"key",val,...
-##     where <reg> are regular options and <key>-<val> are
-##     keyword-value option pairs. Regular options are
-##     assigned in the order they were given as <optspec>s;
-##     regular options may also be given as keyword-values.
+##
+## @table @var
+## @item name
+## name of option variable
+## @item types
+## datatype specification of option:
+## 'type,type,@dots{}'
+## @item defvalue
+## default value given to <name>
+## @end table
+##
+## @item paropts
+## struct of parsed function options (optional)
+##
+## @end table
+##
+## @heading Notes
+##
+## @itemize
+## @item
+## using the 1st or 3rd syntax, @var{name} will be assigned in the context of
+## the calling function; using the 2nd or 3rd syntax, @var{name} will be
+## assigned in the return struct.
+##
+## @item
+## each @code{type} in @var{types} must correspond to a function
+## @command{istype()}: each function will be called to check that a value is
+## valid. For example, if @var{types} = 'numeric,scalar' then a value @var{x}
+## must satisfy @code{isnumeric(x) && isscalar(x)}
+##
+## @item
+## @var{opts} should contain options of the form
+## @verbatim
+##   reg, reg, ..., "key", val, "key", val, ...
+## @end verbatim
+## where @var{reg} are regular options, and @var{key} and @var{val} are
+## keyword-value option pairs. Regular options are assigned in the order they
+## were given as @var{optspec}s; regular options may also be given as
+## keyword-values.
+##
+## @end itemize
+##
+## @end deftypefn
 
 function varargout = parseOptions(opts, varargin)
 
@@ -303,12 +338,15 @@ function varargout = parseOptions(opts, varargin)
     if length(optkey) == 1 && isfield(optchars, optkey)
       optkey = optchars.(optkey);
     else
-      ii = find(cellfun(@(a_n) strncmp(optkey, a_n, min(length(a_n), max(length(optkey), 2))), allowed_names));
-      if length(ii) < 1
-        error("%s: unknown option '%s'", funcName, optkey);
-      endif
-      if length(ii) > 1
-        error("%s: ambiguous option '%s' (matches '%s')", funcName, optkey, strjoin(allowed_names(ii), "' or '"));
+      ii = find(cellfun(@(a_n) strcmp(optkey, a_n), allowed_names));
+      if length(ii) != 1
+        ii = find(cellfun(@(a_n) strncmp(optkey, a_n, min(length(a_n), max(length(optkey), 2))), allowed_names));
+        if length(ii) < 1
+          error("%s: unknown option '%s'", funcName, optkey);
+        endif
+        if length(ii) > 1
+          error("%s: ambiguous option '%s' (matches '%s')", funcName, optkey, strjoin(allowed_names(ii), "' or '"));
+        endif
       endif
       optkey = allowed_names{ii};
     endif
@@ -432,3 +470,15 @@ function varargout = parseOptions(opts, varargin)
   endif
 
 endfunction
+
+%!assert(__test_parseOptions__("real_strictpos_scalar", 2.34, "integer_vector", [9,-1], "string", "Over there", "cell", {1;3}), 'struct("cell",{{1;3}},"twobytwo",{[1 0;0 1]},"real_strictpos_scalar",{2.34},"integer_vector",{[9 -1]},"string",{"Over there"})')
+%!assert(__test_parseOptions__("real_strictpos_scalar", 2.34, "integer_vector", [9,-1], "string", "Over there", "twobytwo", [1,2;3,4]), 'struct("cell",{{1;1;1}},"twobytwo",{[1 2;3 4]},"real_strictpos_scalar",{2.34},"integer_vector",{[9 -1]},"string",{"Over there"})')
+%!fail('__test_parseOptions__("real_strictpos_scalar", 2.34, "integer_vector", [9,-1], "string", "Over there", "cell", {NA,NA}, "twobytwo", zeros(2))', "parseOptions: exactly one of options 'twobytwo', 'cell' are required")
+
+%!test
+%!  status = system("octapps_run __test_parseOptions__ --help");
+%!  assert(status == 1);
+%!test
+%!  [status, output] = system("octapps_run __test_parseOptions__ --real-strictpos-scalar 1.23 --integer-vector='[3,9,5]' --string 'Hi there' --cell '{1,{2,3}}'");
+%!  assert(status == 0);
+%!  assert(strtrim(output), 'struct("cell",{{1,{2,3}}},"twobytwo",{[1 0;0 1]},"real_strictpos_scalar",{1.23},"integer_vector",{[3 9 5]},"string",{"Hi there"})')

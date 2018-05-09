@@ -15,13 +15,26 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} { [ @var{v}, @var{v}, @dots{} ] =} NextRandParam ( @var{rng}, @var{N} )
+##
 ## Generates values for random parameters, given a generator
-## Syntax:
-##   [v, v, ...] = NextRandParam(rng, N)
-## where
-##   rng = random parameter generator
-##   N   = number of values to generate
-##   v   = values of random parameter
+##
+## @heading Arguments
+##
+## @table @var
+## @item rng
+## random parameter generator
+##
+## @item N
+## number of values to generate
+##
+## @item v
+## values of random parameter
+##
+## @end table
+##
+## @end deftypefn
 
 function varargout = NextRandParam(rng, N)
 
@@ -40,7 +53,7 @@ function varargout = NextRandParam(rng, N)
   if length(rng.rii) > 0
     r = rng.q.get(N);
     [varargout{rng.rii}] = deal(mat2cell(rng.rm(:,ones(N,1)) .* r + ...
-					 rng.rc(:,ones(N,1)),ones(length(rng.rii),1),N){:});
+                                         rng.rc(:,ones(N,1)),ones(length(rng.rii),1),N){:});
   endif
 
   ## fill constant parameters
@@ -49,3 +62,9 @@ function varargout = NextRandParam(rng, N)
   endif
 
 endfunction
+
+%!test
+%!  gsl;
+%!  [a, b] = NextRandParam(CreateRandParam([0, 5.5], [2.2, 7]), 100);
+%!  assert(0 <= min(a) && max(a) <= 5.5);
+%!  assert(2.2 <= min(b) && max(b) <= 7);

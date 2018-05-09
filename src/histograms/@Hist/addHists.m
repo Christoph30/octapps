@@ -15,15 +15,33 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{hgrmt} =} addHists ( @var{addop}, @var{hgrms}@dots{} )
+##
 ## Add multiple histograms together.
-## Syntax:
-##   hgrmt = addHists(addop, hgrms...)
-## where:
-##   addop = operation used to add histograms:
-##           "count" : sum histogram counts
-##           "prob"  : sum histogram probabilities
-##   hgrms = histograms to add; [] arguments are ignored
-##   hgrmt = total histogram
+##
+## @heading Arguments
+##
+## @table @var
+## @item addop
+## operation used to add histograms:
+## @table @code
+## @item count
+## sum histogram counts
+##
+## @item prob
+## sum histogram probabilities
+## @end table
+##
+## @item hgrms
+## histograms to add; @code{[]} arguments are ignored
+##
+## @item hgrmt
+## total histogram
+##
+## @end table
+##
+## @end deftypefn
 
 function hgrmt = addHists(addop, varargin)
 
@@ -85,7 +103,6 @@ function hgrmt = addHists(addop, varargin)
 
 endfunction
 
-
 %!test
 %!  hgrm1 = addDataToHist(Hist(1, 0:12), 0.5 + (0:11)');
 %!  hgrm2 = addDataToHist(Hist(1, 0:3:12), 0.5 + (0:11)');
@@ -98,6 +115,3 @@ endfunction
 %!  hgrmt = addHists("count", hgrms{:});
 %!  p = histProbs(hgrmt);
 %!  assert(length(p) == 14 && p(2:end-1) == 1/12);
-
-%!test
-%!  assert(isempty(addHists("count", [])));

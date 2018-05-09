@@ -15,28 +15,67 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
-## Return computing-cost functions used by OptimalSolution4StackSlide()
-## to compute optimal Einstein@Home search setups for the GCT code.
-## Used to compute the E@H S5GC1 solution given in Prix&Shaltev,PRD85,
-## 084010(2012) Table~II.
-## Usage:
-##   cost_funs = CostFunctionsEaHGCT("opt", val, ...)
-## where
-##   cost_funs = struct of computing-cost functions to pass to OptimalSolution4StackSlide()
-## Options:
-##   "fracSky":       fraction of sky covered by search
-##   "fmin":          minimum frequency covered by search (in Hz)
-##   "fmax":          maximum frequency covered by search (in Hz)
-##   "tau_min":       minimum spindown age, determines spindown ranges
-##   "detectors":     CSV list of detectors to use ("H1"=Hanford, "L1"=Livingston, "V1"=Virgo, ...)
-##   "coh_duty":      duty cycle of data within each coherent segment
-##   "resampling":    use F-statistic 'resampling' instead of 'demod' for coherent cost [default: false]
-##   "lattice":       template-bank lattice ("Zn", "Ans",..) [default: "Zn"]
-##   "coh_c0_demod":  computational cost of F-statistic 'demod' per template per second [optional]
-##   "coh_c0_resamp": computational cost of F-statistic 'resampling' per template [optional]
-##   "inc_c0":        computational cost of incoherent step per template per segment [optional]
-##   "grid_interpolation": whether to use interpolating or non-interpolating StackSlide (ie coherent-grids == incoherent-grid)
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{cost_funs} =} CostFunctionsEaHGCT ( @var{opt}, @var{val}, @dots{} )
 ##
+## Return computing-cost functions used by @command{OptimalSolution4StackSlide_v2()}
+## to compute optimal Einstein@@Home search setups for the GCT code.
+## Used to compute the E@@H S5GC1 solution given in Prix&Shaltev,PRD85,
+## 084010(2012) Table~II.
+##
+## @heading Arguments
+##
+## @table @var
+## @item cost_funs
+## struct of computing-cost functions to pass to @command{OptimalSolution4StackSlide_v2()}
+##
+## @end table
+##
+## @heading Options
+##
+## @heading Options
+##
+## @table @code
+## @item fracSky
+## fraction of sky covered by search
+##
+## @item fmin
+## minimum frequency covered by search (in Hz)
+##
+## @item fmax
+## maximum frequency covered by search (in Hz)
+##
+## @item tau_min
+## minimum spindown age, determines spindown ranges
+##
+## @item detectors
+## CSV list of @var{detectors} to use ("H1"=Hanford, "L1"=Livingston, "V1"=Virgo, @var{...})
+##
+## @item coh_duty
+## duty cycle of data within each coherent segment
+##
+## @item resampling
+## use F-statistic @var{resampling} instead of 'demod' for coherent cost [default: false]
+##
+## @item lattice
+## template-bank @var{lattice} ("Zn", "Ans",..) [default: "Zn"]
+##
+## @item coh_c0_demod
+## computational cost of F-statistic 'demod' per template per second [optional]
+##
+## @item coh_c0_resamp
+## computational cost of F-statistic @var{resampling} per template [optional]
+##
+## @item inc_c0
+## computational cost of incoherent step per template per segment [optional]
+##
+## @item grid_interpolation
+## whether to use interpolating or non-interpolating StackSlide (ie coherent-grids == incoherent-grid)
+##
+## @end table
+##
+## @end deftypefn
+
 function cost_funs = CostFunctionsEaHGCT(varargin)
 
   ## parse options
@@ -57,41 +96,40 @@ function cost_funs = CostFunctionsEaHGCT(varargin)
 
   ## make closures of functions with 'params'
   cost_funs = struct( "grid_interpolation", params.grid_interpolation, ...
-                      "costFunCoh", @(Nseg, Tseg, mCoh=0.5) cost_coh_wparams(Nseg, Tseg, mCoh, params), ...
-                      "costFunInc", @(Nseg, Tseg, mInc=0.5) cost_inc_wparams(Nseg, Tseg, mInc, params) ...
+                      "lattice", params.lattice, ...
+                      "f", @(Nseg, Tseg, mCoh=0.5, mInc=0.5) cost_wparams(Nseg, Tseg, mCoh, mInc, params) ...
                     );
 
 endfunction
 
-
 function ret = jn ( n, x )
-  %% spherical bessel function j_n(x), using expression in terms of
-  %% ordinary Bessel functions J_n(x) from wikipedia:
-  %% http://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions:_jn.2C_yn
+  ## spherical bessel function j_n(x), using expression in terms of
+  ## ordinary Bessel functions J_n(x) from wikipedia:
+  ## http://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions:_jn.2C_yn
   ret = sqrt ( pi ./ (2 * x )) .* besselj ( n + 1/2, x );
 endfunction ## jn()
 
 function ret = detg1 ( phi )
-  %% explicit expression Eq(57) in Pletsch(2010):
+  ## explicit expression Eq(57) in Pletsch(2010):
   ret = 1/135 * ( 1 - 6 * jn(1,phi).^2 - jn(0,phi) .* cos(phi) ) .* ( 1 - 10 * jn(2,phi).^2 - jn(1,phi) .* sin(phi) - jn(0,phi) .* cos(phi) );
-  %% missing correction term deduced from maxima-evaluation
+  ## missing correction term deduced from maxima-evaluation
   corr = 1/135 * jn(1,phi) .* sin(phi) .* ( 1 - jn(0,phi) .* cos(phi) - 6 * jn(1,phi).^2 );
   ret -= corr;
 endfunction ## detg1()
 
 function ret = detg2 ( phi )
-  %% derived using Maxima:
+  ## derived using Maxima:
   ret = (8.*jn(0,phi).*jn(1,phi).*cos(phi).*sin(phi))/23625+(16.*jn(1,phi).*jn(3,phi).^2.*sin(phi))/3375+(16.*jn(1,phi).^3.*sin(phi))/7875-(8.*jn(1,phi).*sin(phi))/23625+(4.*jn(0,phi).^2.*cos(phi).^2)/23625+(8.*jn(0,phi).*jn(3,phi).^2.*cos(phi))/3375+(8.*jn(0,phi).*jn(2,phi).^2.*cos(phi))/4725+(8.*jn(0,phi).*jn(1,phi).^2.*cos(phi))/7875-(8.*jn(0,phi).*cos(phi))/23625+(16.*jn(2,phi).^2.*jn(3,phi).^2)/675-(8.*jn(3,phi).^2)/3375+(16.*jn(1,phi).^2.*jn(2,phi).^2)/1575-(8.*jn(2,phi).^2)/4725 -(8.*jn(1,phi).^2)/7875+4/23625;
 endfunction ## detg2()
 
 function ret = refinement ( s, Nseg )
 
-  gam1 = sqrt ( 5 * Nseg.^2 - 4 );	%% Eq.(77) in Pletsch(2010)
+  gam1 = sqrt ( 5 * Nseg.^2 - 4 );      ## Eq.(77) in Pletsch(2010)
   switch ( s )
     case 1
       ret = gam1;
     case 2
-      ret = gam1 .* sqrt ( (35 * Nseg.^4 - 175 * Nseg.^2  + 143)/3 );%% Eq.(96) in Pletsch(2010), 'fixed' to give gam(1)=1
+      ret = gam1 .* sqrt ( (35 * Nseg.^4 - 175 * Nseg.^2  + 143)/3 );## Eq.(96) in Pletsch(2010), 'fixed' to give gam(1)=1
     otherwise
       error ("Invalid value of s: '%f' given, allowed are {1,2}\n", s );
   endswitch
@@ -103,44 +141,43 @@ endfunction ## refinement()
 function ret = func_Nt_given_s ( s, Nseg, Tseg, mis, params )
   ## number of templates Nt for given search-parameters {Nseg, Tseg, mis} and spindown-order 's'
   ## using Eqs.(56) and (82) in Pletsch(2010)
-  C_SI 		= 299792458;		%% Speed of light in vacuo, m s^-1
-  DAYSID_SI	= 86164.09053;		%% Mean sidereal day, s
-  REARTH_SI	= 6.378140e6;		%% Earth equatorial radius, m
+  C_SI          = 299792458;            ## Speed of light in vacuo, m s^-1
+  DAYSID_SI     = 86164.09053;          ## Mean sidereal day, s
+  REARTH_SI     = 6.378140e6;           ## Earth equatorial radius, m
   OmE = 2*pi / DAYSID_SI;
   tauE = REARTH_SI / C_SI;
 
-  n = 3 + s;	%% 2 x sky + 1 x Freq + s x spindowns
+  n = 3 + s;    ## 2 x sky + 1 x Freq + s x spindowns
 
   rho0 = LatticeNormalizedThickness ( n, params.lattice ) * mis^(-n/2);
-  phi = OmE .* Tseg / 2;	%%  Eq.(49) in Pletsch(2010)
+  phi = OmE .* Tseg / 2;        ##  Eq.(49) in Pletsch(2010)
 
-  fracSky = params.fracSky;	%% WU covers only a fraction of the sky
+  fracSky = params.fracSky;     ## WU covers only a fraction of the sky
   fmin = params.fmin;
   fmax = params.fmax;
   tau_min = params.tau_min;
 
   switch ( s )
 
-      case 1
-        %% Eq.(56) in Pletsch(2010)
-        prefact = rho0 * pi^5 * tauE^2 / (2 * tau_min ) * ( fmax^4 - fmin^4 );
-        Ntc 	= fracSky * prefact * sqrt(detg1(phi)) .* Tseg.^3;
+    case 1
+      ## Eq.(56) in Pletsch(2010)
+      prefact = rho0 * pi^5 * tauE^2 / (2 * tau_min ) * ( fmax^4 - fmin^4 );
+      Ntc     = fracSky * prefact * sqrt(detg1(phi)) .* Tseg.^3;
 
-      case 2
-        prefact = rho0  * pi^6 * tauE^2 / (15 * tau_min.^3) * ( fmax^5 - fmin^5 );
-        Ntc 	= fracSky * prefact * sqrt(detg2(phi)) .* Tseg.^6;
+    case 2
+      prefact = rho0  * pi^6 * tauE^2 / (15 * tau_min.^3) * ( fmax^5 - fmin^5 );
+      Ntc     = fracSky * prefact * sqrt(detg2(phi)) .* Tseg.^6;
 
-      otherwise
-        error ("Invalid value of s: '%f' given, allowed are {1,2}\n", s );
-    endswitch
+    otherwise
+      error ("Invalid value of s: '%f' given, allowed are {1,2}\n", s );
+  endswitch
 
-    refine = refinement ( s, Nseg );
+  refine = refinement ( s, Nseg );
 
-    ret = Ntc * refine;
+  ret = Ntc * refine;
 
   return;
 endfunction ## func_Nt_given_s()
-
 
 function [Nt, s] = func_Nt ( Nseg, Tseg, mis, params )
   ## number of templates Nt for given search-parameters 'Nseg,Tseg,mis' and
@@ -155,62 +192,50 @@ function [Nt, s] = func_Nt ( Nseg, Tseg, mis, params )
 
   return;
 
-endfunction # func_Nt()
+endfunction ## func_Nt()
 
-function [cost, Ntc, lattice] = cost_coh_wparams ( Nseg, Tseg, mCoh, params )
+function [costCoh, costInc] = cost_wparams ( Nseg, Tseg, mCoh, mInc, params )
 
-  [err, Nseg, Tseg, mCoh] = common_size( Nseg, Tseg, mCoh);
+  [err, Nseg, Tseg, mCoh, mInc] = common_size( Nseg, Tseg, mCoh, mInc);
   assert ( err == 0 );
-  Ntc = cost = zeros ( size ( Nseg ) );
 
-  for i = 1:length(Nseg(:))
+  if ( ! params.grid_interpolation )
+    assert ( isempty ( mCoh ) || ( mCoh == mInc ) );
+  endif
 
-    if ( params.grid_interpolation )
-      [Ntc(i), s] = func_Nt ( 1, Tseg(i), mCoh(i), params );
-    else
-      [Ntc(i), s] = func_Nt ( Nseg(i), Tseg(i), mCoh(i), params );
-    endif
+  Ndet = length(strsplit(params.detectors, ","));
+  costCoh = costInc = NtCoh = NtInc = zeros ( size ( Nseg )  );
+  numCases = length(Nseg(:));
 
-    Ndet = length(strsplit(params.detectors, ","));
-    if ( params.resampling )
-      cost(i) = Nseg(i) * Ntc(i) * Ndet * params.coh_c0_resamp;
-    else
-      cost(i) = Nseg(i) * Ntc(i) * Ndet * (params.coh_c0_demod * Tseg(i) * params.coh_duty);
-    endif
-
+  for i = 1:numCases
+    [ NtInc(i), s] = func_Nt ( Nseg(i), Tseg(i), mInc(i), params );
   endfor
 
-  lattice = params.lattice;
+  if ( params.grid_interpolation )
+    for i = 1:numCases
+      [NtCoh(i), s] = func_Nt ( 1, Tseg(i), mCoh(i), params );
+    endfor
+  else
+    NtCoh = NtInc;
+  endif
+
+  if ( params.resampling )
+    costCoh = Nseg .* NtCoh .* Ndet .* params.coh_c0_resamp;
+  else
+    costCoh = Nseg .* NtCoh .* Ndet .* (params.coh_c0_demod .* Tseg * params.coh_duty);
+  endif
+  costInc = Nseg .* NtInc * params.inc_c0;
 
   return;
 
 endfunction ## cost_coh_wparams()
-
-function [cost, Ntf, lattice] = cost_inc_wparams ( Nseg, Tseg, mInc, params )
-
-  [err, Nseg, Tseg, mInc] = common_size( Nseg, Tseg, mInc);
-  assert ( err == 0 );
-  Ntf = cost = zeros ( size ( Nseg ) );
-
-  for i = 1:length(Nseg(:))
-    [Ntf(i), s] = func_Nt ( Nseg(i), Tseg(i), mInc(i), params );
-
-    cost(i) = Nseg(i) * Ntf(i) * params.inc_c0;
-  endfor
-
-  lattice = params.lattice;
-
-  return;
-
-endfunction ## cost_inc_wparams()
-
 
 ## Recomputes the E@H S5GC1 solution given in Prix&Shaltev,PRD85,084010(2012) Table~II
 ## and compares with reference result. This function either passes or fails depending on the result.
 %!test
 %!
 %!  refParams.Nseg = 205;
-%!  refParams.Tseg = 25 * 3600;	## 25(!) hours
+%!  refParams.Tseg = 25 * 3600; ## 25(!) hours
 %!  refParams.mCoh   = 0.5;
 %!  refParams.mInc   = 0.5;
 %!
@@ -225,16 +250,14 @@ endfunction ## cost_inc_wparams()
 %!                                  "inc_c0", 6e-9 ...
 %!                                );
 %!
-%!  cost_co = costFuns.costFunCoh(refParams.Nseg, refParams.Tseg, refParams.mCoh );
-%!  cost_ic = costFuns.costFunInc(refParams.Nseg, refParams.Tseg, refParams.mInc );
-%!  cost0 = cost_co + cost_ic;
+%!  [ costCoh, costInc ] = costFuns.f(refParams.Nseg, refParams.Tseg, refParams.mCoh, refParams.mInc );
+%!  cost0 = costCoh + costInc;
 %!  TobsMax = 365 * 86400;
 %!
-%!  sol = OptimalSolution4StackSlide ( "costFuns", costFuns, "cost0", cost0, "TobsMax", TobsMax, "stackparamsGuess", refParams );
+%!  sol_v2 = OptimalSolution4StackSlide_v2 ( "costFuns", costFuns, "cost0", cost0, "TobsMax", TobsMax, "TsegMin", 3600, "stackparamsGuess", refParams, "debugLevel", 1 );
 %!
 %!  tol = -1e-3;
-%!  assert ( sol.mCoh, 0.1443, tol );
-%!  assert ( sol.mInc, 0.1660, tol );
-%!  assert ( sol.Nseg, 527.7, tol );
-%!  assert ( sol.Tseg, 59762, tol );
-%!  assert ( sol.cr, 0.8691, tol );
+%!  assert ( sol_v2.mCoh, 0.14458, tol );
+%!  assert ( sol_v2.mInc, 0.16639, tol );
+%!  assert ( sol_v2.Nseg, 527.86, tol );
+%!  assert ( sol_v2.Tseg, 5.9743e+04, tol );

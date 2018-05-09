@@ -15,8 +15,8 @@
 ## <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} {@var{deps} =} sharedlibdeps(@var{file}, @dots{})
-## @deftypefnx{Function File} {@var{deps} =} sharedlibdeps(@var{exclude}, @var{file}, @dots{})
+## @deftypefn {Function File} {@var{deps} =} sharedlibdeps ( @var{file}, @dots{} )
+## @deftypefnx{Function File} {@var{deps} =} sharedlibdeps ( @var{exclude}, @var{file}, @dots{} )
 ##
 ## Returns in @var{deps} a list of all the shared libraries on which
 ## the executables/shared libraries @var{file}, @dots{} depend.
@@ -81,3 +81,6 @@ function deps = sharedlibdeps(varargin)
   endfor
 
 endfunction
+
+%!test
+%!  deps = sharedlibdeps(glob(fullfile(octave_config_info("libdir"), "liboct*.so")){:});

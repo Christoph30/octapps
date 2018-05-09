@@ -15,17 +15,38 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {} ezprint ( @var{filepath}, @var{opt}, @var{val}, @dots{} )
+##
 ## Print a figure to a file, with some common options.
-## Usage:
-##   ezprint(filepath, "opt", val, ...)
-## Options:
-##   "width":     width of printed figure, in points
-##   "aspect":    aspect ratio of height to width (default: 0.75)
-##   "height":    height of printed figure, in points (overrides "aspect")
-##   "dpi":       resolution of printed figure, in dots per inch (default: 300)
-##   "fontsize":  font size of printed figure, in points (default: 10)
-##   "linescale": factor to scale line width of figure objects (default: 1)
-##   "texregex":  regular expression to apply to TeX output files
+##
+## @heading Options
+##
+## @table @code
+## @item width
+## width of printed figure, in points
+##
+## @item aspect
+## aspect ratio of @var{height} to @var{width} (default: 0.75)
+##
+## @item height
+## @var{height} of printed figure, in points (overrides "@var{aspect}")
+##
+## @item dpi
+## resolution of printed figure, in dots per inch (default: 300)
+##
+## @item fontsize
+## font size of printed figure, in points (default: 10)
+##
+## @item linescale
+## factor to scale line @var{width} of figure objects (default: 1)
+##
+## @item texregex
+## regular expression to apply to TeX output files
+##
+## @end table
+##
+## @end deftypefn
 
 function ezprint(filepath, varargin)
 
@@ -94,12 +115,12 @@ function ezprint(filepath, varargin)
             sprintf("-FHelvetica:%i", fontsize), ...
             filepath);
 
-    ## reset scale figure line widths
+      ## reset scale figure line widths
     unwind_protect_cleanup
       set(H, {"linewidth"}, linewidths);
     end_unwind_protect
 
-  ## reset graphics toolkit to gnuplot
+    ## reset graphics toolkit to gnuplot
   unwind_protect_cleanup
     graphics_toolkit(gcf, toolkit);
   end_unwind_protect
@@ -137,3 +158,12 @@ function ezprint(filepath, varargin)
   endif
 
 endfunction
+
+%!test
+%!  graphics_toolkit gnuplot;
+%!  figname = strcat(tempname(tempdir), ".tex");
+%!  fig = figure("visible", "off");
+%!  plot(0:100, mod(0:100, 10));
+%!  ezprint(figname, "width", 100);
+%!  close(fig);
+%!  assert(exist(figname, "file"));

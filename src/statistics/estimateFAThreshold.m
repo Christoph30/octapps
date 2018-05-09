@@ -15,20 +15,21 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
-## Usage: [threshold, pFA_MPE, pFA_Lower, pFA_Upper] = estimateFAThreshold ( DATA, pFA, confidence=0.95 )
+## -*- texinfo -*-
+## @deftypefn {Function File} { [ @var{threshold}, @var{pFA_MPE}, @var{pFA_Lower}, @var{pFA_Upper}, @var{threshold_Lower}, @var{threshold_Upper} ] =} estimateFAThreshold ( @var{DATA}, @var{pFA}, @var{confidence=0.95} )
 ##
-## Compute threshold for desired false-alarm probablity on samples DATA, returns the resulting maximum-posterior
-## estimate pFA_MPE, and confidence interval [pFA_Lower, pFA_Upper]
+## Compute @var{threshold} for desired false-alarm probablity on samples @var{DATA}, returns the resulting maximum-posterior
+## estimate @var{pFA_MPE}, and @var{confidence} interval [@var{pFA_Lower}, @var{pFA_Upper}].
+## Also returns the corresponding @var{confidence} interval in thresholds [@var{threshold}_Lower, @var{threshold}_Upper],
+## obtained by simply re-computing @var{threshold} on [@var{pFA_Lower}, @var{pFA_Upper}].
 ##
-## This is a simple helper function:
-## estimate the 'rate' f of threshold-crossings from the samples DATA, namely via
-## K = length( DATA > threshold ), N = length(DATA)
-## The maximum-posteror estimate is fMPE=K/N,
-## and the confidence interval [fLower, fUpper] is given by binomialConfidenceInterval(N,K,confidence)
+## @heading Note
 ##
-## Note: the input pFA is allowed to be a vector, returns corresponding vectors
+## the input @var{pFA} is allowed to be a vector, returns corresponding vectors
 ##
-function [threshold, pFA_MPE, pFA_Lower, pFA_Upper] = estimateFAThreshold ( DATA, pFA, confidence=0.95 )
+## @end deftypefn
+
+function [threshold, pFA_MPE, pFA_Lower, pFA_Upper, threshold_Lower, threshold_Upper] = estimateFAThreshold ( DATA, pFA, confidence=0.95 )
 
   assert ( isscalar ( confidence ) );
 
@@ -37,6 +38,14 @@ function [threshold, pFA_MPE, pFA_Lower, pFA_Upper] = estimateFAThreshold ( DATA
   ## now assess the actual pFA associated with that threshold on the given data
   [pFA_MPE, pFA_Lower, pFA_Upper] = estimateRateFromSamples ( DATA, threshold, confidence );
 
+  ## estimate uncertainty on threshold by going back to threshold(pFA)
+  threshold_Upper = empirical_inv ( 1 - pFA_Lower, DATA );
+  threshold_Lower = empirical_inv ( 1 - pFA_Upper, DATA );
+
   return;
 
 endfunction
+
+%!assert(estimateFAThreshold(0:1000, 0.1), 900)
+%!assert(estimateFAThreshold(0:1000, 0.5), 500)
+%!assert(estimateFAThreshold(0:1000, 0.9), 100)

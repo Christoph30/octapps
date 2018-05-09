@@ -15,20 +15,45 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{hgrm} =} LatticeMismatchHist ( @var{dim}, @var{lattice}, @var{opt}, @var{val}, @dots{} )
+##
 ## Generates a normalised mismatch histogram for the given lattice
-## Usage:
-##   hgrm = LatticeMismatchHist(dim, lattice, "opt", val, ...)
-## where:
-##   hgrm      = returned mismatch histogram
-##   dim       = number of lattice dimensions
-##   lattice   = lattice type; see e.g. LatticeFindClosestPoint()
-## Options:
-##   "N"         : number of points to use in generating histogram [default:1e6]
-##   "dbin"      : bin size of histogram [default: 0.01]
-##   "mu_max"    : use this maximum mismatch [default: 1.0]
-##   "use_cache" : if true [default], use a cached version of the lattice mismatch
-##                 histogram, if available. Note that the cached histogram will
-##                 probably contain more points than requested in 'N'.
+##
+## @heading Arguments
+##
+## @table @var
+## @item hgrm
+## returned mismatch histogram
+##
+## @item dim
+## number of @var{lattice} dimensions
+##
+## @item lattice
+## @var{lattice} type; see e.g. @command{LatticeFindClosestPoint()}
+##
+## @end table
+##
+## @heading Options
+##
+## @table @code
+## @item N
+## number of points to use in generating histogram [default:1e6]
+##
+## @item dbin
+## bin size of histogram [default: 0.01]
+##
+## @item mu_max
+## use this maximum mismatch [default: 1.0]
+##
+## @item use_cache
+## if true [default], use a cached version of the @var{lattice} mismatch
+## histogram, if available. Note that the cached histogram will
+## probably contain more points than requested in @var{N}.
+##
+## @end table
+##
+## @end deftypefn
 
 function hgrm = LatticeMismatchHist( dim, lattice, varargin )
 
@@ -103,8 +128,18 @@ function hgrm = LatticeMismatchHist( dim, lattice, varargin )
 
 endfunction
 
-
 ## This function is called by depends() to record extra file dependencies
 function file = __depends_extra_files__()
   file = fullfile(fileparts(mfilename("fullpath")), "lattice_mismatch_hgrms.bin.gz");
 endfunction
+
+%!assert(meanOfHist(LatticeMismatchHist(1, "Zn")), 0.33333, 1e-2)
+%!assert(meanOfHist(LatticeMismatchHist(2, "Zn")), 0.33333, 1e-2)
+%!assert(meanOfHist(LatticeMismatchHist(3, "Zn")), 0.33333, 1e-2)
+%!assert(meanOfHist(LatticeMismatchHist(4, "Zn")), 0.33333, 1e-2)
+%!assert(meanOfHist(LatticeMismatchHist(5, "Zn")), 0.33333, 1e-2)
+%!assert(meanOfHist(LatticeMismatchHist(1, "Ans")), meanOfHist(LatticeMismatchHist(1, "Zn")), 1e-2)
+%!assert(meanOfHist(LatticeMismatchHist(2, "Ans")) > meanOfHist(LatticeMismatchHist(2, "Zn")))
+%!assert(meanOfHist(LatticeMismatchHist(3, "Ans")) > meanOfHist(LatticeMismatchHist(3, "Zn")))
+%!assert(meanOfHist(LatticeMismatchHist(4, "Ans")) > meanOfHist(LatticeMismatchHist(4, "Zn")))
+%!assert(meanOfHist(LatticeMismatchHist(5, "Ans")) > meanOfHist(LatticeMismatchHist(5, "Zn")))

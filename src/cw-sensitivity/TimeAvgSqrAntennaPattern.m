@@ -15,17 +15,38 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{Fsqr_t} =} TimeAvgSqrAntennaPattern ( @var{a0}, @var{b0}, @var{x}, @var{y}, @var{zeta}, @var{OmegaT}, @var{nmax} )
+##
 ## Calculate the time-averaged squared antenna pattern of an interferometer
-## Syntax:
-##   Fsqr_t = TimeAvgSqrAntennaPattern(a0, b0, x, y, zeta, OmegaT, nmax)
-## where:
-##   Fsqr_t = time-averaged squared antenna pattern
-##   a0,b0  = detector null vectors at observation mid-point,
-##            in equatorial coordinates
-##   x,y    = polarisation null vectors in equatorial coordinates
-##   zeta   = angle between interferometer arms in radians
-##   OmegaT = product of angular sidereal frequency and observation time
-##   nmax   = maximum sinc term to add up (0 to 4; default is 4)
+##
+## @heading Arguments
+##
+## @table @var
+## @item Fsqr_t
+## time-averaged squared antenna pattern
+##
+## @item a0
+## @itemx b0
+## detector null vectors at observation mid-point,
+## in equatorial coordinates
+##
+## @item x
+## @itemx y
+## polarisation null vectors in equatorial coordinates
+##
+## @item zeta
+## angle between interferometer arms in radians
+##
+## @item OmegaT
+## product of angular sidereal frequency and observation time
+##
+## @item nmax
+## maximum sinc term to add up (0 to 4; default is 4)
+##
+## @end table
+##
+## @end deftypefn
 
 function Fsqr_t = TimeAvgSqrAntennaPattern(a0, b0, x, y, zeta, OmegaT, nmax)
 
@@ -59,12 +80,12 @@ function Fsqr_t = TimeAvgSqrAntennaPattern(a0, b0, x, y, zeta, OmegaT, nmax)
   ## rotationally split components of a0 and b0
   zros = zeros(1, size(a0, 2));
   a0i = b0i = cell(1, 3);
-  a0i{1} = [ a0(1,:); a0(2,:); zros ];    # cross(cross(Omega_c, a0), Omega_c)
-  b0i{1} = [ b0(1,:); b0(2,:); zros ];    # cross(cross(Omega_c, b0), Omega_c)
-  a0i{2} = [ -a0(2,:); a0(1,:); zros ];   # cross(Omega_c, a0)
-  b0i{2} = [ -b0(2,:); b0(1,:); zros ];   # cross(Omega_c, b0)
-  a0i{3} = [ zros; zros; a0(3,:) ];       # dot(Omega_c, a0) Omega_c
-  b0i{3} = [ zros; zros; b0(3,:) ];       # dot(Omega_c, b0) Omega_c
+  a0i{1} = [ a0(1,:); a0(2,:); zros ];    ## cross(cross(Omega_c, a0), Omega_c)
+  b0i{1} = [ b0(1,:); b0(2,:); zros ];    ## cross(cross(Omega_c, b0), Omega_c)
+  a0i{2} = [ -a0(2,:); a0(1,:); zros ];   ## cross(Omega_c, a0)
+  b0i{2} = [ -b0(2,:); b0(1,:); zros ];   ## cross(Omega_c, b0)
+  a0i{3} = [ zros; zros; a0(3,:) ];       ## dot(Omega_c, a0) Omega_c
+  b0i{3} = [ zros; zros; b0(3,:) ];       ## dot(Omega_c, b0) Omega_c
 
   ## "JKS" expressions and sinc coefficients
   C = zeros(nmax+1, size(a0, 2));
@@ -124,3 +145,5 @@ function JKS = JKSexpr(expr, i, a0i, b0i, x, y)
     error("%s: invalid JKS expression '%s'", expr);
   endif
 endfunction
+
+%!assert(TimeAvgSqrAntennaPattern([1;0;0], [0;1;0], [0;0.5;0.5], [0;0.5;-0.5], pi/2, inf), 0.03125)

@@ -16,24 +16,61 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{Rsqr} =} SqrSNRGeometricFactorHist ( @var{opt}, @var{val}, @dots{} )
+##
 ## Calculate a histogram of the squared SNR "geometric factor", R^2
-## Syntax:
-##   Rsqr        = SqrSNRGeometricFactorHist("opt", val, ...)
-## where:
-##   Rsqr        = histogram of R^2
-## and where options are:
-##   "T"         = observation time in sidereal days (default: inf)
-##   "detectors" = detectors to use; either e.g. "H1,L1" or "HL" (default: L1)
-##   "detweights"= detector weights on S_h to use (default: uniform weights)
-##   "alpha"     = source right ascension in radians (default: all-sky)
-##   "sdelta"    = sine of source declination (default: all-sky)
-##   "psi"       = source orientation in radians (default: all)
-##   "cosi"      = cosine of inclination angle (default: all)
-##   "emission"  = emission mechanism (default: nonax)
-##   "zmstime"   = sidereal time of the zero meridian at observation mid-point
-##   "hist_dx"   = histogram bin size
-##   "hist_N"    = number of histogram points to calculate at a time
-##   "hist_err"  = histogram error target
+##
+## @heading Arguments
+##
+## @table @var
+## @item Rsqr
+## histogram of R^2
+##
+## @end table
+##
+## @heading Options
+##
+## @table @code
+## @item T
+## observation time in sidereal days (default: inf)
+##
+## @item detectors
+## @var{detectors} to use; either e.g. "H1,L1" or "HL" (default: L1)
+##
+## @item detweights
+## detector weights on S_h to use (default: uniform weights)
+##
+## @item alpha
+## source right ascension in radians (default: all-sky)
+##
+## @item sdelta
+## sine of source declination (default: all-sky)
+##
+## @item psi
+## source orientation in radians (default: all)
+##
+## @item cosi
+## cosine of inclination angle (default: all)
+##
+## @item emission
+## @var{emission} mechanism (default: nonax)
+##
+## @item zmstime
+## sidereal time of the zero meridian at observation mid-point
+##
+## @item hist_dx
+## histogram bin size
+##
+## @item hist_N
+## number of histogram points to calculate at a time
+##
+## @item hist_err
+## histogram error target
+##
+## @end table
+##
+## @end deftypefn
 
 function Rsqr = SqrSNRGeometricFactorHist(varargin)
 
@@ -51,12 +88,12 @@ function Rsqr = SqrSNRGeometricFactorHist(varargin)
                {"hist_dx", "real,scalar", 5e-3},
                {"hist_N", "real,scalar", 20000},
                {"hist_err", "real,scalar", 1e-4}
-               );
+              );
   assert(all(isalnum(detectors) | detectors == ","), ...
          "%s: invalid detectors '%s'", funcName, detectors);
 
   ## product of angular sidereal frequency and observation time
-  OmegaT = 2*pi*T;   # T is in sidereal days
+  OmegaT = 2*pi*T;   ## T is in sidereal days
 
   ## create random parameter generator for source location parameters
   rng = CreateRandParam(alpha, sdelta, psi, cosi);
@@ -69,7 +106,7 @@ function Rsqr = SqrSNRGeometricFactorHist(varargin)
   ## then normalise weights by their mean
   assert(isempty(detweights) || length(detweights) == length(detectors));
   if isempty(detweights)
-     detweights = ones(1, length(detectors));
+    detweights = ones(1, length(detectors));
   endif
   detweights /= mean(detweights);
 
@@ -93,7 +130,6 @@ function Rsqr = SqrSNRGeometricFactorHist(varargin)
 
   ## get signal amplitude normalisation
   apxnorm = SignalAmplitudes(emission);
-
 
   ## calculate histogram of squared SNR geometric factor
   Rsqr = Hist(1, {"lin", "dbin", hist_dx});
@@ -143,3 +179,5 @@ function Rsqr = SqrSNRGeometricFactorHist(varargin)
   Rsqr = rescaleHistBins(Rsqr, 1.0 / apxnorm);
 
 endfunction
+
+%!assert(class(SqrSNRGeometricFactorHist()), "Hist")

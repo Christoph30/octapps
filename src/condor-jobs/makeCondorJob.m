@@ -15,40 +15,87 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{job_file} =} makeCondorJob ( @var{opt}, @var{val}, @dots{} )
+##
 ## Set up a Condor job for running Octave scripts or executables.
-## Usage:
-##   job_file = makeCondorJob("opt", val, ...)
-## where
-##   job_file = name of Condor job submit file
-## General options:
-##   "job_name":        name of Condor job, used to name submit file
-##                      and input/output directories
-##   "log_dir":         where to write Condor log files (default: $TMP)
-##   "data_files":      cell array of required data files; elements of cell
-##                      array may be either:
-##                      * "file_path", or
-##                      * {"ENVPATH", "file_name_in_ENVPATH", ...}
-##                      where ENVPATH is the name of an environment path
-##   "extra_condor":    extra commands to write to Condor submit file, in form:
-##                      {"command", "value", ...}
-## Options for running Octave scripts:
-##   "func_name":       name of Octave function to run
-##   "arguments":       cell array of arguments to pass to function.
-##                      use $(variable) to insert reference to a Condor variable.
-##   "func_nargout":    how many outputs returned by the function to save
-##   "exec_files":      cell array of executable files required by the function
-##   "output_format":   output format of file containg saved outputs from function:
-##                      * "Oct(Text|Bin)(Z)": Octave (text|binary) (zipped) format
-##                        - file extension will be .(txt|bin)(.gz)
-##                      * "HDF5": Hierarchical Data Format version 5 format
-##                        - file extension will be .hdf5
-##                      * "Mat": Matlab (version 6) binary format
-##                        - file extension will be .mat
-##                      Default is "OctBinZ"
-## Options for running executables:
-##   "executable":      name of executable to run
-##   "arguments":       cell array of arguments to pass to executable.
-##                      use $(variable) to insert reference to a Condor variable.
+##
+## @heading Arguments
+##
+## @table @var
+## @item job_file
+## name of Condor job submit file
+##
+## @end table
+##
+## @heading General options
+##
+## @table @code
+## @item job_name
+## name of Condor job, used to name submit file
+## and input/output directories
+##
+## @item log_dir
+## where to write Condor log files (default: $TMP)
+##
+## @item data_files
+## cell array of required data files; elements of cell
+## array may be either:
+## @itemize
+## @item @file{file_path}, or
+## @item @{@env{ENVPATH}, @file{file_name_in_ENVPATH}, @dots{}@}
+## @end itemize
+## where @env{ENVPATH} is the name of an environment path
+##
+## @item extra_condor
+## extra commands to write to Condor submit file, in form:
+## @{@samp{command}, @samp{value}, @dots{}@}
+##
+## @end table
+##
+## @heading Options for running Octave scripts
+##
+## @table @code
+## @item func_name
+## name of Octave function to run
+##
+## @item arguments
+## cell array of arguments to pass to function.
+## use $(variable) to insert reference to a Condor variable.
+##
+## @item func_nargout
+## how many outputs returned by the function to save
+##
+## @item exec_files
+## cell array of executable files required by the function
+##
+## @item output_format
+## output format of file containg saved outputs from function:
+## @table @code
+## @item Oct(Text|Bin)(Z)
+## Octave (text|binary) (zipped) format; file extension will be .(txt|bin)(.gz)
+## @item HDF5
+## Hierarchical Data Format version 5 format; file extension will be .hdf5
+## @item Mat
+## Matlab (version 6) binary format; file extension will be .mat
+## @end table
+## Default is "OctBinZ"
+##
+## @end table
+##
+## @heading Options for running executables
+##
+## @table @code
+## @item executable
+## name of executable to run
+##
+## @item arguments
+## cell array of arguments to pass to executable.
+## use @code{$(variable)} to insert reference to a Condor variable.
+##
+## @end table
+##
+## @end deftypefn
 
 function job_file = makeCondorJob(varargin)
 
@@ -62,7 +109,7 @@ function job_file = makeCondorJob(varargin)
                {"executable", "char,+exactlyone:func_name", []},
                {"arguments", "cell,vector"},
                {"func_nargout", "integer,positive,scalar,+noneorall:func_name", []},
-               {"exec_files", "cell,vector,+exactlyone:executable", {}},
+               {"exec_files", "cell,vector,+atmostone:executable", {}},
                {"output_format", "char,+atmostone:executable", "OctBinZ"},
                []);
 
@@ -290,9 +337,9 @@ function job_file = makeCondorJob(varargin)
   bootstr = strcat(bootstr, "wall_time = ( double(tic()) - double(wall_time) ) * 1e-6;\n");
   bootstr = strcat(bootstr, "cpu_time = cputime() - cpu_time;\n");
   save_vars = strjoin({ ...
-                       "condor_ID", "condor_node", "arguments", ...
-                       "results", "wall_time", "cpu_time", ...
-                       }, "\", \"");
+                        "condor_ID", "condor_node", "arguments", ...
+                        "results", "wall_time", "cpu_time", ...
+                      }, "\", \"");
   bootstr = strcat(bootstr, sprintf("save(\"%s\", \"stdres.%s\", \"%s\");\n", save_args, save_ext, save_vars));
   bootstr = strcat(bootstr, "EOF\n");
 
@@ -305,19 +352,19 @@ function job_file = makeCondorJob(varargin)
 
   ## build Condor job submit file spec
   job_spec = { ...
-              "universe", "vanilla", ...
-              "executable", fullfile(pwd, job_boot_file), ...
-              "arguments", sprintf("\"'$(Cluster)' '%s'\"", argstr), ...
-              "initialdir", "", ...
-              "output", "stdout", ...
-              "error", "stderr", ...
-              "log", job_log_file, ...
-              "getenv", "false", ...
-              "should_transfer_files", "yes", ...
-              "transfer_input_files", strcat(fullfile(pwd, job_indir), filesep), ...
-              "when_to_transfer_output", "on_exit", ...
-              "notification", "never", ...
-              };
+               "universe", "vanilla", ...
+               "executable", fullfile(pwd, job_boot_file), ...
+               "arguments", sprintf("\"'$(Cluster)' '%s'\"", argstr), ...
+               "initialdir", "", ...
+               "output", "stdout", ...
+               "error", "stderr", ...
+               "log", job_log_file, ...
+               "getenv", "false", ...
+               "should_transfer_files", "yes", ...
+               "transfer_input_files", strcat(fullfile(pwd, job_indir), filesep), ...
+               "when_to_transfer_output", "on_exit", ...
+               "notification", "never", ...
+             };
   for i = 1:2:length(extra_condor)
     if any(strcmpi(extra_condor(i), job_spec(1:2:end)))
       error("%s: cannot override value of Condor command '%s'", funcName, extra_condor_name);
@@ -340,14 +387,14 @@ function job_file = makeCondorJob(varargin)
 
   ## check existence of input files, then copy them to input directories
   copy_files = { ...
-                { data_files, job_indir }, ...
-                { exec_files, job_inexecdir }, ...
-                { shlib_files, job_inexecdir }, ...
-                { func_files, job_infuncdir }, ...
-                { func_extra_files, job_infuncdir }, ...
-                { oct_files, job_infuncdir }, ...
-                { class_dirs, job_infuncdir }
-                };
+                 { data_files, job_indir }, ...
+                 { exec_files, job_inexecdir }, ...
+                 { shlib_files, job_inexecdir }, ...
+                 { func_files, job_infuncdir }, ...
+                 { func_extra_files, job_infuncdir }, ...
+                 { oct_files, job_infuncdir }, ...
+                 { class_dirs, job_infuncdir }
+               };
   for i = 1:length(copy_files)
     copy_files_i = copy_files{i}{1};
     copy_dir_i = copy_files{i}{2};
@@ -402,3 +449,5 @@ function job_file = makeCondorJob(varargin)
   endif
 
 endfunction
+
+%!test disp("to test makeCondorJob(), run the makeCondorDAG() test(s)")

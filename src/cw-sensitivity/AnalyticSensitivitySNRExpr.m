@@ -15,17 +15,36 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} { [ @var{rho}, @var{tms} ] =} AnalyticSensitivitySNRExpr ( @var{za}, @var{pd}, @var{Ns}, @var{nu} )
+##
 ## Implements an expression used in analytic sensitivity estimation
 ## for a chi^2 detection statistic
-## Syntax:
-##   [rho,tms] = AnalyticSensitivitySNRExpr(za, pd, Ns, nu)
-## where:
-##   rho = detectable r.m.s. SNR (per segment)
-##   tms = terms of the second factor of the expression
-##   za  = normalised false alarm threshold
-##   pd  = false dismissal probability
-##   Ns  = number of segments
-##   nu  = degrees of freedom per segment
+##
+## @heading Arguments
+##
+## @table @var
+## @item rho
+## detectable r.m.s. SNR (per segment)
+##
+## @item tms
+## terms of the second factor of the expression
+##
+## @item za
+## normalised false alarm threshold
+##
+## @item pd
+## false dismissal probability
+##
+## @item Ns
+## number of segments
+##
+## @item nu
+## degrees of freedom per segment
+##
+## @end table
+##
+## @end deftypefn
 
 function [rho,tms] = AnalyticSensitivitySNRExpr(za, pd, Ns, nu)
 
@@ -53,3 +72,5 @@ function [rho,tms] = AnalyticSensitivitySNRExpr(za, pd, Ns, nu)
   rho = (2*nu./Ns).^0.25 .* sqrt(tms{1}+tms{2}+tms{3});
 
 endfunction
+
+%!assert(AnalyticSensitivitySNRExpr(0.01, 0.1, 100, 4), 0.6312, 1e-3)

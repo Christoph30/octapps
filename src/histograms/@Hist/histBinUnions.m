@@ -15,12 +15,23 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{ubins} =} histBinUnions ( @var{hgrms}@dots{} )
+##
 ## Return the unions of bins of the given histograms in each dimension.
-## Syntax:
-##   ubins = histBinUnions(hgrms...)
-## where:
-##   ubins = cell array of union of bins in each dimension
-##   hgrms = histograms
+##
+## @heading Arguments
+##
+## @table @var
+## @item ubins
+## cell array of union of bins in each dimension
+##
+## @item hgrms
+## histograms
+##
+## @end table
+##
+## @end deftypefn
 
 function ubins = histBinUnions(varargin)
 
@@ -63,3 +74,11 @@ function ubins = histBinUnions(varargin)
   endfor
 
 endfunction
+
+%!shared hgrm1, hgrm2, hgrm3
+%!  hgrm1 = restrictHist(addDataToHist(Hist(1, {"lin", "dbin", 0.1}), unifrnd(0, 1, 1e6, 1)));
+%!  hgrm2 = restrictHist(addDataToHist(Hist(1, {"lin", "dbin", 0.1}), unifrnd(1, 2, 1e6, 1)));
+%!  hgrm3 = restrictHist(addDataToHist(Hist(1, {"lin", "dbin", 0.1}), unifrnd(2, 3, 1e6, 1)));
+%!assert(histBinUnions(hgrm1, hgrm2), {[0:0.1:2]}, 1e-3)
+%!assert(histBinUnions(hgrm1, hgrm3), {[0:0.1:1, 2:0.1:3]}, 1e-3)
+%!assert(histBinUnions(hgrm2, hgrm3), {[1:0.1:3]}, 1e-3)

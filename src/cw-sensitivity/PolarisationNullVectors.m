@@ -15,16 +15,35 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} { [ @var{xp}, @var{yp}, @var{xx}, @var{yx} ] =} PolarisationNullVectors ( @var{alpha}, @var{sdelta}, @var{psi} )
+##
 ## Calculate the vectors along which a pure plus/cross gravitational
 ## wave create no space-time peturbation
-## Syntax:
-##   [xp, yp, xx, yx] = PolarisationNullVectors(alpha, sdelta, psi)
-## where:
-##   xp,yp  = plus polarisation null vectors in equatorial coordinates
-##   xx,yx  = cross polarisation null vectors in equatorial coordinates
-##   alpha  = source right ascension in radians
-##   sdelta = sine of source declination
-##   psi    = source polarisation angle in radians
+##
+## @heading Arguments
+##
+## @table @var
+## @item xp
+## @itemx yp
+## plus polarisation null vectors in equatorial coordinates
+##
+## @item xx
+## @itemx yx
+## cross polarisation null vectors in equatorial coordinates
+##
+## @item alpha
+## source right ascension in radians
+##
+## @item sdelta
+## sine of source declination
+##
+## @item psi
+## source polarisation angle in radians
+##
+## @end table
+##
+## @end deftypefn
 
 function [xp, yp, xx, yx] = PolarisationNullVectors(alpha, sdelta, psi)
 
@@ -40,12 +59,12 @@ function [xp, yp, xx, yx] = PolarisationNullVectors(alpha, sdelta, psi)
   psi = psi(:)';
 
   ## cosine and sine terms of cross polarisation vectors
-  c1 = cos(psi);               # cos(-psi)
-  s1 = -sin(psi);              # sin(-psi)
-  c2 = -sdelta;                # cos(-pi/2 - delta)
-  s2 = -sqrt(1 - sdelta.^2);   # sin(-pi/2 - delta)
-  c3 = sin(alpha);             # cos(pi/2 - alpha)
-  s3 = cos(alpha);             # sin(pi/2 - alpha)
+  c1 = cos(psi);               ## cos(-psi)
+  s1 = -sin(psi);              ## sin(-psi)
+  c2 = -sdelta;                ## cos(-pi/2 - delta)
+  s2 = -sqrt(1 - sdelta.^2);   ## sin(-pi/2 - delta)
+  c3 = sin(alpha);             ## cos(pi/2 - alpha)
+  s3 = cos(alpha);             ## sin(pi/2 - alpha)
 
   ## cross polarisation vectors
   xx = [ c1.*c3 - c2.*s1.*s3; -c1.*s3 - c2.*c3.*s1;  s1.*s2 ];
@@ -56,3 +75,10 @@ function [xp, yp, xx, yx] = PolarisationNullVectors(alpha, sdelta, psi)
   yp = (xx + yx) / sqrt(2);
 
 endfunction
+
+%!test
+%!  [xp, yp, xx, yx] = PolarisationNullVectors(0, 0, pi/2);
+%!  assert(xp, [0; -1/sqrt(2); 1/sqrt(2)], 1e-3);
+%!  assert(yp, [0; 1/sqrt(2); 1/sqrt(2)], 1e-3);
+%!  assert(xx, [0; 0; 1], 1e-3);
+%!  assert(yx, [0; 1; 0], 1e-3);

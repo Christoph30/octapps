@@ -15,14 +15,27 @@
 ## Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 ## MA  02111-1307  USA
 
+## -*- texinfo -*-
+## @deftypefn {Function File} {@var{hgrm} =} resampleHist ( @var{hgrm}, @var{k}, @var{newbins_k} )
+## @deftypefnx{Function File} {@var{hgrm} =} resampleHist ( @var{hgrm}, @var{newbins_1}, @dots{}, @var{newbins_dim} )
+##
 ## Resamples a histogram to a new set of bins
-## Syntax:
-##   hgrm = resampleHist(hgrm, k, newbins_k)
-##   hgrm = resampleHist(hgrm, newbins_1, ..., newbins_dim)
-## where:
-##   hgrm      = histogram object
-##   k         = dimension along which to resample
-##   newbins_k = new bins in dimension k (dim = number of dimensions)
+##
+## @heading Arguments
+##
+## @table @var
+## @item hgrm
+## histogram object
+##
+## @item k
+## dimension along which to resample
+##
+## @item newbins_k
+## new bins in dimension @var{k} (dim = number of dimensions)
+##
+## @end table
+##
+## @end deftypefn
 
 function hgrm = resampleHist(hgrm, varargin)
 
@@ -150,7 +163,6 @@ function hgrm = resampleHist(hgrm, varargin)
 
 endfunction
 
-
 ## Round given histogram bins boundaries to within a small
 ## fraction of the smallest overall bin size, so that one
 ## can compare floating-point precision bin boundaries robustly.
@@ -158,5 +170,10 @@ function varargout = roundHistBinBounds(varargin)
   assert(nargin == nargout);
   dbins = min(cell2mat(cellfun(@(b) min(diff(unique(b))), varargin, "UniformOutput", false)));
   dbins = 10^(floor(log10(dbins)) - 3);
-  varargout = cellfun(@(b) round(b / dbins) * dbins, varargin, "UniformOutput", false);
+  varargout = cellfun(@(b) unique(round(b / dbins) * dbins), varargin, "UniformOutput", false);
 endfunction
+
+%!test
+%!  hgrm = Hist(2, {"lin", "dbin", 0.01}, {"lin", "dbin", 0.1});
+%!  hgrm = addDataToHist(hgrm, [normrnd(1.7, 4.3, 1e6, 1), rand(1e6, 1)]);
+%!  assert(meanOfHist(hgrm, 1), meanOfHist(resampleHist(hgrm, 1, -30:0.2:30), 1), 1e-3);
