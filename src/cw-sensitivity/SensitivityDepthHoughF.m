@@ -1,4 +1,5 @@
 ## Copyright (C) 2012 Reinhard Prix
+## Copyright (C) 2017 Christoph Dreissigacker
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -56,8 +57,21 @@ function sensDepth = SensitivityDepthHoughF ( varargin )
                        {"delta", "real,vector", [-pi/2, pi/2]},
                        []);
 
+  ## determine R^2 histogram
+  persistent persparams = {uvar.alpha,uvar.delta,uvar.detectors,uvar.detweights};
+  params = {uvar.alpha,uvar.delta,uvar.detectors,uvar.detweights};
+  persistent persRsqr = SqrSNRGeometricFactorHist("detectors", uvar.detectors, "detweights", uvar.detweights, "alpha", uvar.alpha, "sdelta", sin(uvar.delta));
+  if isequal(persparams,params);
+    Rsqr = persRsqr;
+  else
+    Rsqr = SqrSNRGeometricFactorHist("detectors", uvar.detectors, "detweights", uvar.detweights, "alpha", uvar.alpha, "sdelta", sin(uvar.delta));
+    clear persparams persRsqr;
+    persistent persparams = params;
+    persistent persRsqr = Rsqr;
+  endif
+
+ 
   ## compute sensitivity SNR
-  Rsqr = SqrSNRGeometricFactorHist("detectors", uvar.detectors, "detweights", uvar.detweights, "alpha", uvar.alpha, "sdelta", sin(uvar.delta) );
   [sensDepth, pd_Depth] = SensitivityDepth ( "pd", uvar.pFD, "Ns", uvar.Nseg,"Tdata", uvar.Tdata, "Rsqr", Rsqr,"misHist", uvar.misHist, "stat", {"HoughFstat", "paNt", uvar.pFA, "Fth", uvar.Fth});
 
 

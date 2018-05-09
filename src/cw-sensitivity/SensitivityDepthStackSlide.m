@@ -42,6 +42,9 @@
 ##   "detweights":      detector weights on S_h to use (default: uniform weights)
 ##   "alpha":           source right ascension in radians (default: all-sky)
 ##   "delta":           source declination (default: all-sky)
+##   "psi":             polarization angle (default: isotropic average)
+##   "cosi":            orientation angle (default: isotropic average)
+##   "Bayesian":        true for Bayesian Depth, false for frequentist
 ##
 ##  Example input:
 ##              Nseg = [90,90,44,44,22;100,100,50,50,25]                          two different setups with 5 stages (5 columns, 2 rows)
@@ -68,6 +71,9 @@ function sensDepth = SensitivityDepthStackSlide ( varargin )
 		       {"detweights", "real,strictpos,vector", []},
 		       {"alpha", "real,vector", [0, 2*pi]},
 		       {"delta", "real,vector", [-pi/2, pi/2]},
+		       {"psi", "real,vector", [0, 2*pi]},
+		       {"cosi", "real,vector", [-1, 1]},
+           {"Bayesian", "logical,scalar", false},
 		       []);
 
   ## check input
@@ -78,13 +84,13 @@ function sensDepth = SensitivityDepthStackSlide ( varargin )
 	   "#stages unclear, #columns in pFA/avg2Fth and Nseg must match #mismatch histograms.\n");
 
   ## determine R^2 histogram
-  persistent persparams = {uvar.alpha,uvar.delta,uvar.detectors,uvar.detweights};
-  params = {uvar.alpha,uvar.delta,uvar.detectors,uvar.detweights};
-  persistent persRsqr = SqrSNRGeometricFactorHist("detectors", uvar.detectors, "detweights", uvar.detweights, "alpha", uvar.alpha, "sdelta", sin(uvar.delta));
+  persistent persparams = {uvar.alpha,uvar.delta,uvar.detectors,uvar.detweights, uvar.psi, uvar.cosi};
+  params = {uvar.alpha,uvar.delta,uvar.detectors,uvar.detweights, uvar.psi, uvar.cosi};
+  persistent persRsqr = SqrSNRGeometricFactorHist("detectors", uvar.detectors, "detweights", uvar.detweights, "alpha", uvar.alpha, "sdelta", sin(uvar.delta), "psi", uvar.psi, "cosi", uvar.cosi);
   if isequal(persparams,params);
     Rsqr = persRsqr;
   else
-    Rsqr = SqrSNRGeometricFactorHist("detectors", uvar.detectors, "detweights", uvar.detweights, "alpha", uvar.alpha, "sdelta", sin(uvar.delta));
+    Rsqr = SqrSNRGeometricFactorHist("detectors", uvar.detectors, "detweights", uvar.detweights, "alpha", uvar.alpha, "sdelta", sin(uvar.delta), "psi", uvar.psi, "cosi", uvar.cosi);
     clear persparams persRsqr;
     persistent persparams = params;
     persistent persRsqr = Rsqr;
@@ -98,8 +104,11 @@ function sensDepth = SensitivityDepthStackSlide ( varargin )
   endif
 
   ## compute sensitivity SNR
-  [sensDepth, pd_Depth] = SensitivityDepth ( "pd", uvar.pFD, "Ns", uvar.Nseg, "Tdata",uvar.Tdata, "Rsqr", Rsqr,"misHist",uvar.misHist, "stat", {"ChiSqr", FAarg{:}} );
-
+  if !uvar.Bayesian
+    [sensDepth, pd_Depth] = SensitivityDepth ( "pd", uvar.pFD, "Ns", uvar.Nseg, "Tdata",uvar.Tdata, "Rsqr", Rsqr,"misHist",uvar.misHist, "stat", {"ChiSqr", FAarg{:}} );
+  else
+    sensDepth = SensitivityDepthBayesian ( "pd", uvar.pFD, "Ns", uvar.Nseg, "Tdata",uvar.Tdata, "Rsqr", Rsqr,"misHist",uvar.misHist, "stat", {"ChiSqr", FAarg{:}} );
+  endif
 
 endfunction
 
